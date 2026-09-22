@@ -13,6 +13,8 @@
   --teal-soft: #E3EBE8;
   --accent: #B5763B;
   --muted: #6E7B75;
+  --warm-wash: #F3E8DC;
+  --ink: #1F2A25;
 
   /* Bootstrap variable overrides */
   --bs-body-bg: var(--bg);
@@ -258,6 +260,33 @@ a:hover {
   margin-bottom: 16px;
 }
 
+/* ---- Check-in hero (promoted primary action on the dashboard) ---- */
+.checkin-hero {
+  background: var(--warm-wash);
+  border: none;
+  border-radius: 14px;
+  padding: 36px 32px;
+}
+.checkin-hero h2 {
+  font-size: 1.85rem;
+  color: var(--ink);
+}
+
+/* ---- Secondary section headings (demoted vs. the check-in hero) ---- */
+.section-heading {
+  font-size: 1.05rem;
+}
+
+/* ---- Baseline status / AI recommendations: tighter panel padding ---- */
+.panel-compact {
+  padding: 20px;
+}
+
+/* ---- Trend glimpse: recedes onto the page, no card chrome ---- */
+.trend-panel {
+  padding: 16px 4px;
+}
+
 /* ---- Check-in widget ---- */
 .checkin-panel h2 {
   margin-bottom: 2px;
@@ -295,21 +324,20 @@ a:hover {
   flex-wrap: wrap;
 }
 .mood-btn {
-  font-size: 1.6rem;
+  font-size: 2.1rem;
   line-height: 1;
-  padding: 10px 14px;
-  border-radius: 10px;
-  border: 1px solid var(--card-border);
-  background: var(--bg);
+  padding: 4px 6px;
+  background: none;
+  border: none;
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+  transition: transform 0.15s;
 }
 .mood-btn:hover {
-  background: var(--teal-soft);
+  transform: scale(1.08);
 }
 .mood-btn.selected {
-  border: 2px solid var(--teal);
-  background: var(--teal-soft);
+  transform: scale(1.15);
+  border-bottom: 2px solid var(--accent);
 }
 
 .dot-row {

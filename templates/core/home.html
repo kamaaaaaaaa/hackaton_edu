@@ -17,7 +17,7 @@
     {% endif %}
 
     {# ---------- 1. Check-in widget ---------- #}
-    <section class="card panel checkin-panel">
+    <section class="panel checkin-panel checkin-hero">
         {% if not user.is_authenticated %}
             <h2>Как ты сегодня?</h2>
             <p class="panel-sub">Войдите, чтобы начать — это займёт меньше минуты.</p>
@@ -45,8 +45,8 @@
     </section>
 
     {# ---------- 2. Baseline status ---------- #}
-    <section class="card panel">
-        <h2>Твоё состояние на этой неделе</h2>
+    <section class="card panel panel-compact">
+        <h2 class="section-heading">Твоё состояние на этой неделе</h2>
         {% if status_display %}
             <div class="baseline-pill {{ status_display.css_class }}">{{ status_display.label }}</div>
             <p class="panel-sub">{{ status_display.description }}</p>
@@ -57,8 +57,8 @@
     </section>
 
     {# ---------- 3. AI recommendations ---------- #}
-    <section class="panel">
-        <h2>Что можно попробовать</h2>
+    <section class="panel panel-compact">
+        <h2 class="section-heading">Что можно попробовать</h2>
         {% if recommendations %}
             <div class="rec-grid">
                 {% for rec in recommendations %}
@@ -90,8 +90,8 @@
     </section>
 
     {# ---------- 4. Trend glimpse ---------- #}
-    <section class="card panel">
-        <h2>Последние 7 дней</h2>
+    <section class="panel trend-panel">
+        <h2 class="section-heading">Последние 7 дней</h2>
         <div class="trend-row">
             {% for label, height in trend_days %}
                 <div class="trend-bar-col">
