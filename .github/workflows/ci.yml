@@ -23,3 +23,6 @@ jobs:
 
       - name: Run tests
         run: python manage.py test
+
+      - name: Check for AI-generator tells
+        run: python scripts/check_ai_slop.py
