@@ -1,8 +1,14 @@
+from io import StringIO
+
+from django.core.management import call_command
 from django.test import TestCase
 from django.urls import reverse
 
 from accounts.models import User
 from checkins.models import CheckIn
+from checkins.services import STATUS_OK, get_burnout_status
+from events.services import forecast_heads_up_days
+from groups.models import Group
 
 
 class HomePageTests(TestCase):
@@ -96,3 +102,51 @@ class ProgressPageTests(TestCase):
             )
         response = self.client.get(self.url)
         self.assertContains(response, "Личный паттерн")
+
+
+class SeedDemoCommandTests(TestCase):
+    """seed_demo must run cleanly and actually produce a burnout-triggering
+    demo account, not just insert rows — see core/management/commands/seed_demo.py."""
+
+    def test_command_exits_cleanly_and_creates_demo_student(self):
+        out = StringIO()
+        call_command("seed_demo", stdout=out)
+        self.assertTrue(User.objects.filter(username="demo_student").exists())
+        self.assertIn("demo_student", out.getvalue())
+
+    def test_demo_student_checkin_history_triggers_escalated_status(self):
+        call_command("seed_demo", stdout=StringIO())
+        student = User.objects.get(username="demo_student")
+        self.assertEqual(CheckIn.objects.filter(user=student).count(), 30)
+        status, _, _ = get_burnout_status(student)
+        self.assertNotEqual(status, STATUS_OK)
+
+    def test_demo_events_produce_a_non_default_forecast(self):
+        call_command("seed_demo", stdout=StringIO())
+        student = User.objects.get(username="demo_student")
+        from django.conf import settings
+        forecast = forecast_heads_up_days(student, "exam")
+        self.assertNotEqual(forecast, settings.EVENT_FORECAST_DEFAULT_DAYS)
+
+    def test_demo_group_clears_org_dashboard_privacy_threshold(self):
+        call_command("seed_demo", stdout=StringIO())
+        from django.conf import settings
+        from django.utils import timezone
+
+        group = Group.objects.get(name="Демо-группа")
+        week_start = timezone.localdate() - timezone.timedelta(days=timezone.localdate().weekday())
+        distinct_users = (
+            CheckIn.objects.filter(
+                user__profile__group=group, date__gte=week_start, date__lte=timezone.localdate()
+            )
+            .values("user")
+            .distinct()
+            .count()
+        )
+        self.assertGreaterEqual(distinct_users, settings.ORG_DASHBOARD_MIN_WEEKLY_CHECKINS)
+
+    def test_command_is_safe_to_run_twice(self):
+        call_command("seed_demo", stdout=StringIO())
+        call_command("seed_demo", stdout=StringIO())  # must not raise
+        student = User.objects.get(username="demo_student")
+        self.assertEqual(CheckIn.objects.filter(user=student).count(), 30)
