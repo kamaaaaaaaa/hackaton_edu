@@ -75,23 +75,18 @@
 
     <nav class="bottom-nav" aria-label="Основная навигация">
         <a class="bottom-nav-item{% if request.resolver_match.view_name == 'core:home' %} active{% endif %}" href="{% url 'core:home' %}">
-            <span class="bottom-nav-icon" aria-hidden="true">🏠</span>
             <span>Главная</span>
         </a>
         <a class="bottom-nav-item{% if request.resolver_match.view_name == 'core:progress' %} active{% endif %}" href="{% url 'core:progress' %}">
-            <span class="bottom-nav-icon" aria-hidden="true">📈</span>
             <span>Прогресс</span>
         </a>
         <a class="bottom-nav-item{% if request.resolver_match.app_name == 'articles' %} active{% endif %}" href="{% url 'articles:list' %}">
-            <span class="bottom-nav-icon" aria-hidden="true">📚</span>
             <span>Статьи</span>
         </a>
         <a class="bottom-nav-item{% if request.resolver_match.view_name == 'safety:quick_help' %} active{% endif %}" href="{% url 'safety:quick_help' %}">
-            <span class="bottom-nav-icon" aria-hidden="true">🆘</span>
             <span>Помощь</span>
         </a>
         <a class="bottom-nav-item{% if request.resolver_match.view_name == 'my_data' %} active{% endif %}" href="{% url 'my_data' %}">
-            <span class="bottom-nav-icon" aria-hidden="true">👤</span>
             <span>Данные</span>
         </a>
     </nav>
