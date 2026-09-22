@@ -16,6 +16,9 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'courses:course_list' %}">Курсы</a>
+                    </li>
                     {% if user.is_authenticated %}
                         <li class="nav-item">
                             <span class="nav-link disabled">Hi, {{ user.username }}</span>
@@ -29,6 +32,9 @@
                     {% else %}
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'login' %}">Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'signup' %}">Регистрация</a>
                         </li>
                     {% endif %}
                 </ul>
