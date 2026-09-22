@@ -1,0 +1,197 @@
+/*
+  "Тихий кабинет" / Quiet Study theme
+  Overrides Bootstrap 5.3.3 defaults to match the approved variant-b.html mockup.
+  Flat, hairline-border, non-shadowed look. No box-shadow anywhere.
+*/
+
+:root {
+  --bg: #EEF2F0;
+  --text: #23302B;
+  --card: #FFFFFF;
+  --card-border: #D8E0DC;
+  --teal: #3E6E64;
+  --teal-soft: #E3EBE8;
+  --accent: #B5763B;
+  --muted: #6E7B75;
+
+  /* Bootstrap variable overrides */
+  --bs-body-bg: var(--bg);
+  --bs-body-color: var(--text);
+  --bs-border-color: var(--card-border);
+  --bs-primary: var(--teal);
+  --bs-primary-rgb: 62, 110, 100;
+  --bs-secondary: var(--accent);
+  --bs-secondary-rgb: 181, 118, 59;
+  --bs-link-color: var(--teal);
+  --bs-link-color-rgb: 62, 110, 100;
+  --bs-link-hover-color: var(--accent);
+  --bs-link-hover-color-rgb: 181, 118, 59;
+  --bs-body-font-family: 'IBM Plex Sans', sans-serif;
+  --bs-border-radius: 8px;
+  --bs-border-radius-sm: 6px;
+  --bs-border-radius-lg: 10px;
+  --bs-box-shadow: none;
+  --bs-box-shadow-sm: none;
+  --bs-box-shadow-lg: none;
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+body {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 400;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Source Serif 4', serif;
+  font-weight: 600;
+}
+
+a {
+  color: var(--teal);
+}
+a:hover {
+  color: var(--accent);
+}
+
+/* ---- Top bar / navbar ---- */
+.navbar {
+  background: var(--card) !important;
+  border-bottom: 1px solid var(--card-border);
+  box-shadow: none;
+}
+.navbar-brand {
+  font-family: 'Source Serif 4', serif;
+  font-weight: 600;
+  color: var(--teal) !important;
+}
+.navbar-light .navbar-nav .nav-link,
+.navbar .nav-link {
+  color: var(--text);
+  border-radius: 6px;
+  padding: 8px 14px;
+}
+.navbar-light .navbar-nav .nav-link:hover,
+.navbar .nav-link:hover {
+  background: var(--teal-soft);
+  color: var(--teal);
+}
+.navbar-light .navbar-nav .nav-link.active,
+.navbar .nav-link.active {
+  background: var(--teal-soft);
+  color: var(--teal);
+  font-weight: 500;
+}
+.navbar-toggler {
+  border-color: var(--card-border);
+  box-shadow: none;
+}
+
+/* ---- Cards ---- */
+.card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+/* ---- Buttons ---- */
+.btn {
+  border-radius: 8px;
+  box-shadow: none;
+  font-weight: 500;
+}
+.btn-primary {
+  --bs-btn-bg: var(--accent);
+  --bs-btn-border-color: var(--accent);
+  --bs-btn-hover-bg: var(--accent);
+  --bs-btn-hover-border-color: var(--accent);
+  --bs-btn-active-bg: var(--accent);
+  --bs-btn-active-border-color: var(--accent);
+  --bs-btn-disabled-bg: var(--accent);
+  --bs-btn-disabled-border-color: var(--accent);
+  background-color: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+  background-color: var(--accent) !important;
+  border-color: var(--accent) !important;
+  opacity: 0.9;
+  box-shadow: none !important;
+}
+.btn-link {
+  color: var(--teal);
+}
+.btn-link:hover {
+  color: var(--accent);
+}
+
+/* ---- Forms ---- */
+.form-control,
+.form-select {
+  background-color: var(--bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  color: var(--text);
+  box-shadow: none;
+}
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 0.2rem rgba(62, 110, 100, 0.15);
+  background-color: var(--bg);
+  color: var(--text);
+}
+.form-label {
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+.form-text {
+  color: var(--muted);
+}
+
+/* ---- Alerts ---- */
+.alert {
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  box-shadow: none;
+  background-color: var(--card);
+  color: var(--text);
+}
+.alert-danger {
+  background-color: #F6E9E3;
+  border-color: #E0BFAE;
+  color: #8A4A2C;
+}
+.alert-success {
+  background-color: var(--teal-soft);
+  border-color: var(--card-border);
+  color: var(--teal);
+}
+
+/* ---- Misc surfaces used on home page ---- */
+.bg-light {
+  background-color: var(--card) !important;
+  border: 1px solid var(--card-border);
+}
+
+.text-muted {
+  color: var(--muted) !important;
+}
+
+/* ---- Breadcrumbs ---- */
+.breadcrumb-item a {
+  color: var(--teal);
+}
+
+/* ---- List group (lessons) ---- */
+.list-group-item {
+  background-color: var(--card);
+  border-color: var(--card-border);
+}
