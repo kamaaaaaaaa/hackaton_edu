@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Мой прогресс | AntiВыгорание{% endblock %}
+
+{% block content %}
+<div class="quiet-column">
+
+    {# ---------- No data yet ---------- #}
+    {% if not has_any_checkins %}
+        <section class="card panel">
+            <h2>Мой прогресс</h2>
+            <p class="panel-sub">
+                Здесь появится история твоих отметок и личная динамика за недели и месяцы —
+                без сравнения с другими, только с тобой самим(ой). Сделай первую отметку на
+                главной странице, и графики начнут заполняться.
+            </p>
+        </section>
+    {% endif %}
+
+    {# ---------- Week summary ---------- #}
+    {% if week_summary %}
+        <section class="card panel">
+            <h2>Эта неделя</h2>
+            <p class="panel-sub">В среднем за последние {{ week_summary.days }} дней ({{ week_summary.checkin_count }} отметок)</p>
+            <div class="summary-grid">
+                <div class="summary-stat">
+                    <span class="summary-stat-value">{{ week_summary.avg_mood }}</span>
+                    <span class="summary-stat-label">Настроение / 5</span>
+                </div>
+                <div class="summary-stat">
+                    <span class="summary-stat-value">{{ week_summary.avg_energy }}</span>
+                    <span class="summary-stat-label">Энергия / 5</span>
+                </div>
+                <div class="summary-stat">
+                    <span class="summary-stat-value">{{ week_summary.avg_stress }}</span>
+                    <span class="summary-stat-label">Стресс / 5</span>
+                </div>
+                <div class="summary-stat">
+                    <span class="summary-stat-value">{{ streak }}</span>
+                    <span class="summary-stat-label">Отметок подряд</span>
+                </div>
+            </div>
+        </section>
+    {% endif %}
+
+    {# ---------- Charts ---------- #}
+    {% if has_any_checkins %}
+        <section class="card panel">
+            <h2>Последние 14 дней</h2>
+            <canvas id="chart-14" height="160"></canvas>
+        </section>
+
+        <section class="card panel">
+            <h2>Последние 30 дней</h2>
+            <canvas id="chart-30" height="160"></canvas>
+        </section>
+    {% endif %}
+
+    {# ---------- Personal pattern: sleep vs stress ---------- #}
+    {% if sleep_pattern %}
+        <section class="card panel">
+            <h2>Личный паттерн: сон и стресс</h2>
+            <p class="panel-sub">
+                Средний уровень стресса в ночи с разным количеством сна
+                (только там, где данных уже достаточно для сравнения).
+            </p>
+            <div class="summary-grid">
+                <div class="summary-stat">
+                    <span class="summary-stat-value">{{ sleep_pattern.low_sleep_avg_stress }}</span>
+                    <span class="summary-stat-label">Стресс при сне &lt;{{ sleep_pattern.threshold_hours }} ч ({{ sleep_pattern.low_sleep_count }} ночей)</span>
+                </div>
+                <div class="summary-stat">
+                    <span class="summary-stat-value">{{ sleep_pattern.high_sleep_avg_stress }}</span>
+                    <span class="summary-stat-label">Стресс при сне ≥{{ sleep_pattern.threshold_hours }} ч ({{ sleep_pattern.high_sleep_count }} ночей)</span>
+                </div>
+            </div>
+        </section>
+    {% endif %}
+
+    {# ---------- Weekly survey results (surveys app builds the survey-taking UI; this only displays results read-only) ---------- #}
+    <section class="card panel">
+        <h2>Результаты еженедельного опросника</h2>
+        {% if weekly_surveys %}
+            <ul class="event-list">
+                {% for survey in weekly_surveys %}
+                    <li class="event-item">
+                        <div class="event-item-main">
+                            <span class="event-item-title">{{ survey.date|date:"d.m.Y" }}</span>
+                            <span class="event-item-meta">Балл: {{ survey.score }}</span>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="panel-sub">Пока нет пройденных опросников.</p>
+        {% endif %}
+        {# TODO(surveys): weekly survey results render here once that app is done — this only lists existing WeeklySurvey rows read-only, it doesn't build the survey-taking UI. #}
+    </section>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{% if has_any_checkins %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+(function () {
+    var chart14Data = {{ chart_14_json|safe }};
+    var chart30Data = {{ chart_30_json|safe }};
+
+    var COLORS = {
+        mood: '#3E6E64',    /* --teal */
+        energy: '#B5763B',  /* --accent */
+        stress: '#8C3B2E'   /* matches .baseline-rose */
+    };
+
+    function buildChart(canvasId, data) {
+        var el = document.getElementById(canvasId);
+        if (!el) return;
+        new Chart(el.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: data.labels,
+                datasets: [
+                    { label: 'Настроение', data: data.mood, borderColor: COLORS.mood, backgroundColor: COLORS.mood, tension: 0.25, spanGaps: true, pointRadius: 2 },
+                    { label: 'Энергия', data: data.energy, borderColor: COLORS.energy, backgroundColor: COLORS.energy, tension: 0.25, spanGaps: true, pointRadius: 2 },
+                    { label: 'Стресс', data: data.stress, borderColor: COLORS.stress, backgroundColor: COLORS.stress, tension: 0.25, spanGaps: true, pointRadius: 2 }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { min: 1, max: 5, ticks: { stepSize: 1 }, grid: { color: '#D8E0DC' } },
+                    x: { grid: { display: false } }
+                },
+                plugins: {
+                    legend: { position: 'bottom', labels: { color: '#23302B', font: { family: 'IBM Plex Sans' } } }
+                }
+            }
+        });
+    }
+
+    buildChart('chart-14', chart14Data);
+    buildChart('chart-30', chart30Data);
+})();
+</script>
+{% endif %}
+{% endblock %}

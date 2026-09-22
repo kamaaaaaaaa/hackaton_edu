@@ -3,6 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
 from django.utils import timezone
 
+from safety.services import contains_crisis_keywords
+
 from .forms import CheckInForm
 from .models import CheckIn
 
@@ -25,6 +27,8 @@ def submit_checkin(request):
         checkin.user = request.user
         checkin.date = today
         checkin.save()
+        if contains_crisis_keywords(checkin.note):
+            return redirect("safety:crisis")
         messages.success(request, "Отметка сохранена. Спасибо, что заглянул(а) к себе.")
     else:
         messages.error(request, "Не получилось сохранить отметку — попробуй ещё раз.")
