@@ -27,6 +27,54 @@ python manage.py runserver
 
 Then open http://127.0.0.1:8000/ in your browser.
 
+## Docker (Windows/any OS)
+
+No local Python/venv/PostgreSQL setup needed — Docker runs the whole stack
+(Django + Postgres) with one command, the same way on Windows, Mac, or Linux.
+
+1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+   (includes Docker Compose).
+2. From the project root:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   Fill in `SECRET_KEY` in `.env` (you can leave `ALLOWED_HOSTS` as
+   `localhost,127.0.0.1`). `DATABASE_URL` is set automatically by
+   `docker-compose.yml` to point at the containerized Postgres database, so
+   you don't need to add it yourself.
+3. Build and start everything:
+
+   ```bash
+   docker compose up --build
+   ```
+
+   This starts a `db` (Postgres) container and a `web` (Django) container,
+   runs migrations automatically, and serves the app at
+   http://localhost:8000.
+4. Create an admin account (in another terminal, while the stack is running):
+
+   ```bash
+   docker compose exec web python manage.py createsuperuser
+   ```
+5. To stop the stack:
+
+   ```bash
+   docker compose down
+   ```
+
+   To stop it **and** wipe the Postgres data volume (fresh database next
+   time):
+
+   ```bash
+   docker compose down -v
+   ```
+
+Code changes on the host are picked up live by the dev server, same as
+running `manage.py runserver` locally — no rebuild needed unless you change
+`requirements.txt` or the `Dockerfile`.
+
 ## Deployment
 
 ### Push the code to GitHub
