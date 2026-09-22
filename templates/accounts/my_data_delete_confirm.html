@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Подтверждение удаления | AntiВыгорание{% endblock %}
+
+{% block content %}
+<div class="quiet-column">
+    <section class="card panel">
+        <h2>Точно удалить все данные?</h2>
+        <p class="panel-sub">
+            Это без возможности восстановления удалит все твои отметки самочувствия,
+            события, опросники и рекомендации. Аккаунт и вход в него останутся — ты сможешь
+            пользоваться сервисом дальше с чистого листа.
+        </p>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger"
+                    onclick="return confirm('Удалить все данные без возможности восстановления?');">
+                Да, удалить всё
+            </button>
+            <a class="btn btn-outline-secondary" href="{% url 'my_data' %}">Отмена</a>
+        </form>
+    </section>
+</div>
+{% endblock %}

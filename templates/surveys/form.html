@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Еженедельный опросник | AntiВыгорание{% endblock %}
+
+{% block content %}
+<div class="quiet-column">
+    <section class="card panel">
+        <h2>Еженедельный опросник</h2>
+        <p class="panel-sub">
+            Шесть коротких вопросов о твоём самочувствии за последнюю неделю (Copenhagen
+            Burnout Inventory, личное выгорание). Это не диагностика — просто способ точнее
+            видеть свою динамику.
+        </p>
+        <form method="post" novalidate class="survey-form">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="checkin-field survey-question">
+                    <span class="checkin-field-label">{{ field.label }}</span>
+                    <div class="survey-choices">
+                        {% for radio in field %}
+                            <label class="survey-choice">
+                                {{ radio.tag }}
+                                <span>{{ radio.choice_label }}</span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                    {% if field.errors %}
+                        <div class="text-danger small">{{ field.errors }}</div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary">Сохранить ответы</button>
+        </form>
+    </section>
+</div>
+{% endblock %}

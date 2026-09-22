@@ -47,11 +47,13 @@
     {# ---------- 2. Baseline status ---------- #}
     <section class="card panel">
         <h2>Твоё состояние на этой неделе</h2>
-        <div class="baseline-pill baseline-ochre">Стоит обратить внимание</div>
-        <p class="panel-sub">
-            Несколько дней подряд сон и энергия немного ниже твоей обычной нормы.
-            Это не диагноз — просто повод немного бережнее отнестись к себе на этой неделе.
-        </p>
+        {% if status_display %}
+            <div class="baseline-pill {{ status_display.css_class }}">{{ status_display.label }}</div>
+            <p class="panel-sub">{{ status_display.description }}</p>
+        {% else %}
+            <div class="baseline-pill baseline-muted">Собираем данные</div>
+            <p class="panel-sub">Войди и отмечайся каждый день — здесь появится твой личный статус.</p>
+        {% endif %}
     </section>
 
     {# ---------- 3. AI recommendations ---------- #}

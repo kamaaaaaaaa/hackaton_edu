@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Результат опросника | AntiВыгорание{% endblock %}
+
+{% block content %}
+<div class="quiet-column">
+    <section class="card panel">
+        <h2>Результат опросника</h2>
+        <p class="panel-sub">{{ survey.date }}</p>
+        <div class="baseline-pill baseline-ochre">Средний балл: {{ survey.score }} / 100</div>
+        <p class="panel-sub">{{ interpretation }}</p>
+        <p class="placeholder-tag">Это не диагноз, а ориентир для отслеживания динамики недели к неделе.</p>
+        <a class="btn btn-outline-primary" href="{% url 'core:home' %}">На главную</a>
+    </section>
+</div>
+{% endblock %}
