@@ -272,8 +272,10 @@ a:hover {
   color: var(--ink);
 }
 
-/* ---- Secondary section headings (demoted vs. the check-in hero) ---- */
-.section-heading {
+/* ---- Secondary section headings (demoted vs. the check-in hero) ----
+   Selector must out-specificity ".panel h2" (0,1,1) — a bare class
+   selector (0,1,0) loses to it regardless of source order. */
+.panel h2.section-heading {
   font-size: 1.05rem;
 }
 
