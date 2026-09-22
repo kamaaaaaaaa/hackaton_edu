@@ -4,6 +4,8 @@ from django.contrib.auth.views import LoginView
 from django.urls import reverse_lazy
 from django.views.generic.edit import CreateView
 
+from core.views import placeholder_page
+
 from .forms import SignupForm, StyledAuthenticationForm
 
 

@@ -47,7 +47,13 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'accounts',
     'core',
-    'courses',
+    'checkins',
+    'events',
+    'surveys',
+    'assistant',
+    'articles',
+    'groups',
+    'safety',
 ]
 
 AUTH_USER_MODEL = 'accounts.User'
@@ -164,6 +170,21 @@ MAILERS = {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
 }
+
+
+# Burnout-detection thresholds (read by checkins/events/assistant apps).
+# Keep all tunable numbers here — later agents must read these, never hardcode.
+BURNOUT_BASELINE_MIN_DAYS = env.int("BURNOUT_BASELINE_MIN_DAYS", default=7)
+BURNOUT_BASELINE_FULL_DAYS = env.int("BURNOUT_BASELINE_FULL_DAYS", default=14)
+BURNOUT_TREND_WINDOW_DAYS = env.int("BURNOUT_TREND_WINDOW_DAYS", default=7)
+BURNOUT_CONSECUTIVE_DECLINE_DAYS = env.int("BURNOUT_CONSECUTIVE_DECLINE_DAYS", default=3)
+EVENT_FORECAST_DEFAULT_DAYS = env.int("EVENT_FORECAST_DEFAULT_DAYS", default=7)
+ORG_DASHBOARD_MIN_WEEKLY_CHECKINS = env.int("ORG_DASHBOARD_MIN_WEEKLY_CHECKINS", default=5)
+WEEKLY_SURVEY_INTERVAL_DAYS = env.int("WEEKLY_SURVEY_INTERVAL_DAYS", default=7)
+
+# AI assistant settings
+ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY", default="")
+AI_MODEL = env("AI_MODEL", default="claude-haiku-4-5-20251001")
 
 
 # Production security hardening (Render deploys behind HTTPS)
