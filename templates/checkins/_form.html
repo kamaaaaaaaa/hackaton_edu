@@ -1,8 +1,10 @@
-{# Check-in widget form. Included from core/home.html.
-   Requires `checkin_form` (a checkins.forms.CheckInForm) in context.
-   mood/energy/stress/sleep_hours are hidden inputs on the form; the visible
-   emoji/dot/pill buttons below only set those hidden inputs' values via JS —
-   see checkins/forms.py's docstring for why. #}
+{% comment %}
+Check-in widget form. Included from core/home.html.
+Requires `checkin_form` (a checkins.forms.CheckInForm) in context.
+mood/energy/stress/sleep_hours are hidden inputs on the form; the visible
+emoji/dot/pill buttons below only set those hidden inputs' values via JS —
+see checkins/forms.py's docstring for why.
+{% endcomment %}
 <form method="post" action="{% url 'checkins:submit' %}" id="checkin-form" class="checkin-form" novalidate>
     {% csrf_token %}
     {{ checkin_form.mood }}
