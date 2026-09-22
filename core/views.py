@@ -1,5 +1,6 @@
 import json
 
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.utils import timezone
@@ -98,4 +99,20 @@ def progress(request):
         # displays whatever WeeklySurvey results already exist for this
         # user, most recent first.
         "weekly_surveys": WeeklySurvey.objects.filter(user=request.user).order_by("-date")[:5],
+    })
+
+
+def validation(request):
+    """"Валидация и доказательность" — public methodology/evidence page.
+
+    No auth required: judges and visitors need to see this even logged
+    out, same as articles. Pulls the burnout-detection thresholds straight
+    from settings so the page can't drift out of sync with
+    checkins/services.py's actual escalation logic.
+    """
+    consecutive_decline_days = settings.BURNOUT_CONSECUTIVE_DECLINE_DAYS
+    return render(request, "core/validation.html", {
+        "baseline_full_days": settings.BURNOUT_BASELINE_FULL_DAYS,
+        "consecutive_decline_days": consecutive_decline_days,
+        "specialist_duration_days": consecutive_decline_days * 2,
     })
