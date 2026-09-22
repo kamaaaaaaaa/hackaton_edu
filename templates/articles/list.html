@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Статьи | AntiВыгорание{% endblock %}
+
+{% block content %}
+<div class="quiet-column">
+    <section class="card panel">
+        <h2>Статьи</h2>
+        <p class="panel-sub">Короткие, спокойные материалы про сон, стресс, выгорание и то, как просить о помощи.</p>
+
+        {% if articles %}
+            <div class="article-list">
+                {% for article in articles %}
+                    <div class="article-item">
+                        <h3 class="article-title">{{ article.title }}</h3>
+                        <p class="article-meta">{{ article.get_category_display }} · {{ article.read_minutes }} мин чтения</p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="placeholder-tag">Скоро здесь появятся статьи.</p>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

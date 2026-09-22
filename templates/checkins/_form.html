@@ -1,0 +1,63 @@
+{# Check-in widget form. Included from core/home.html.
+   Requires `checkin_form` (a checkins.forms.CheckInForm) in context.
+   mood/energy/stress/sleep_hours are hidden inputs on the form; the visible
+   emoji/dot/pill buttons below only set those hidden inputs' values via JS —
+   see checkins/forms.py's docstring for why. #}
+<form method="post" action="{% url 'checkins:submit' %}" id="checkin-form" class="checkin-form" novalidate>
+    {% csrf_token %}
+    {{ checkin_form.mood }}
+    {{ checkin_form.energy }}
+    {{ checkin_form.stress }}
+    {{ checkin_form.sleep_hours }}
+
+    <div class="checkin-field">
+        <span class="checkin-field-label">Настроение</span>
+        <div class="mood-row" data-target="id_mood">
+            <button type="button" class="mood-btn" data-value="1" aria-label="Очень плохо">😞</button>
+            <button type="button" class="mood-btn" data-value="2" aria-label="Плохо">😕</button>
+            <button type="button" class="mood-btn" data-value="3" aria-label="Нормально">😐</button>
+            <button type="button" class="mood-btn" data-value="4" aria-label="Хорошо">🙂</button>
+            <button type="button" class="mood-btn" data-value="5" aria-label="Отлично">😄</button>
+        </div>
+    </div>
+
+    <div class="checkin-field">
+        <span class="checkin-field-label">Энергия</span>
+        <div class="dot-row" data-target="id_energy">
+            <button type="button" class="dot-btn" data-value="1" aria-label="1 из 5"></button>
+            <button type="button" class="dot-btn" data-value="2" aria-label="2 из 5"></button>
+            <button type="button" class="dot-btn" data-value="3" aria-label="3 из 5"></button>
+            <button type="button" class="dot-btn" data-value="4" aria-label="4 из 5"></button>
+            <button type="button" class="dot-btn" data-value="5" aria-label="5 из 5"></button>
+        </div>
+    </div>
+
+    <div class="checkin-field">
+        <span class="checkin-field-label">Стресс</span>
+        <div class="dot-row" data-target="id_stress">
+            <button type="button" class="dot-btn" data-value="1" aria-label="1 из 5"></button>
+            <button type="button" class="dot-btn" data-value="2" aria-label="2 из 5"></button>
+            <button type="button" class="dot-btn" data-value="3" aria-label="3 из 5"></button>
+            <button type="button" class="dot-btn" data-value="4" aria-label="4 из 5"></button>
+            <button type="button" class="dot-btn" data-value="5" aria-label="5 из 5"></button>
+        </div>
+    </div>
+
+    <div class="checkin-field">
+        <span class="checkin-field-label">Сон</span>
+        <div class="pill-row" data-target="id_sleep_hours">
+            <button type="button" class="pill-btn" data-value="4.0">&lt;5 ч</button>
+            <button type="button" class="pill-btn" data-value="5.5">5–6 ч</button>
+            <button type="button" class="pill-btn" data-value="6.5">6–7 ч</button>
+            <button type="button" class="pill-btn" data-value="7.5">7–8 ч</button>
+            <button type="button" class="pill-btn" data-value="8.5">8+ ч</button>
+        </div>
+    </div>
+
+    <div class="checkin-field">
+        <label class="checkin-field-label" for="id_note">Заметка (необязательно)</label>
+        {{ checkin_form.note }}
+    </div>
+
+    <button type="submit" class="btn btn-primary" id="checkin-submit">Сохранить отметку</button>
+</form>

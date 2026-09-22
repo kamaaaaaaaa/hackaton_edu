@@ -1,6 +1,18 @@
 from django.shortcuts import render
 from django.utils import timezone
 
+from checkins.forms import CheckInForm
+from checkins.models import CheckIn
+
+MOOD_EMOJI = {1: "😞", 2: "😕", 3: "😐", 4: "🙂", 5: "😄"}
+
+# Static example bar heights (%) for the "last 7 days" trend glimpse until
+# real aggregation exists — matches the approved mockup's placeholder shape.
+PLACEHOLDER_TREND_DAYS = [
+    ("Пн", 55), ("Вт", 70), ("Ср", 40), ("Чт", 65),
+    ("Пт", 50), ("Сб", 30), ("Вс", 60),
+]
+
 WEEKDAY_NAMES_RU = [
     "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье",
 ]
@@ -30,9 +42,20 @@ PLACEHOLDER_RECOMMENDATIONS = [
 def home(request):
     today = timezone.localdate()
     today_display = f"{WEEKDAY_NAMES_RU[today.weekday()]}, {today.day} {MONTH_NAMES_RU[today.month - 1]}"
+
+    today_checkin = None
+    checkin_form = None
+    if request.user.is_authenticated:
+        today_checkin = CheckIn.objects.filter(user=request.user, date=today).first()
+        checkin_form = CheckInForm(instance=today_checkin)
+
     return render(request, "core/home.html", {
         "today_display": today_display,
         "recommendations": PLACEHOLDER_RECOMMENDATIONS,
+        "today_checkin": today_checkin,
+        "today_checkin_mood_emoji": MOOD_EMOJI.get(today_checkin.mood) if today_checkin else None,
+        "checkin_form": checkin_form,
+        "trend_days": PLACEHOLDER_TREND_DAYS,
     })
 
 

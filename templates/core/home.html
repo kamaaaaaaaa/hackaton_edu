@@ -1,14 +1,151 @@
 {% extends "base.html" %}
 
-{% block title %}Home | Hackathon Starter{% endblock %}
+{% block title %}Главная | AntiВыгорание{% endblock %}
 
 {% block content %}
-    <div class="p-5 mb-4 bg-light rounded-3">
-        <h1 class="display-5 fw-bold">Hackathon Starter</h1>
-        <p class="col-md-8 fs-4">
-            This is a generic, extensible Django base: custom user model, Bootstrap 5
-            layout, and environment-driven settings ready for local dev and Render
-            deployment. Build your idea on top of it.
+<div class="quiet-column">
+
+    <p class="page-date">{{ today_display }}</p>
+
+    {# ---------- 1. Check-in widget ---------- #}
+    <section class="card panel checkin-panel">
+        {% if not user.is_authenticated %}
+            <h2>Как ты сегодня?</h2>
+            <p class="panel-sub">Войдите, чтобы начать — это займёт меньше минуты.</p>
+            <a class="btn btn-primary" href="{% url 'login' %}">Войти, чтобы начать</a>
+
+        {% elif today_checkin %}
+            <div id="checkin-confirmation">
+                <h2>Отметка на сегодня сохранена</h2>
+                <p class="panel-sub">Спасибо, что заглянул(а) к себе. Увидимся завтра.</p>
+                <div class="checkin-recap">
+                    <span class="checkin-recap-emoji">{{ today_checkin_mood_emoji }}</span>
+                    <span class="checkin-recap-detail">Энергия: {{ today_checkin.energy }}/5 · Стресс: {{ today_checkin.stress }}/5 · Сон: {{ today_checkin.sleep_hours }} ч</span>
+                </div>
+                <button type="button" class="btn btn-link p-0" id="checkin-edit-toggle">Изменить отметку</button>
+            </div>
+            <div id="checkin-form-wrap" style="display:none;">
+                {% include "checkins/_form.html" %}
+            </div>
+
+        {% else %}
+            <h2>Как ты сегодня?</h2>
+            <p class="panel-sub">Это займёт 10 секунд</p>
+            {% include "checkins/_form.html" %}
+        {% endif %}
+    </section>
+
+    {# ---------- 2. Baseline status ---------- #}
+    <section class="card panel">
+        <h2>Твоё состояние на этой неделе</h2>
+        <div class="baseline-pill baseline-ochre">Стоит обратить внимание</div>
+        <p class="panel-sub">
+            Несколько дней подряд сон и энергия немного ниже твоей обычной нормы.
+            Это не диагноз — просто повод немного бережнее отнестись к себе на этой неделе.
         </p>
-    </div>
+    </section>
+
+    {# ---------- 3. AI recommendations ---------- #}
+    <section class="panel">
+        <h2>Что можно попробовать</h2>
+        <div class="rec-grid">
+            {% for rec in recommendations %}
+                <div class="card rec-card">
+                    <h3 class="rec-title">{{ rec.title }}</h3>
+                    <p class="rec-why"><span class="rec-why-label">Почему я это вижу:</span> {{ rec.why }}</p>
+                    <a class="rec-link" href="{% url 'articles:list' %}">Читать статью →</a>
+                    <div class="rec-feedback">
+                        <button type="button" class="btn btn-sm btn-outline-feedback">Помогло</button>
+                        <button type="button" class="btn btn-sm btn-outline-feedback">Не помогло</button>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    {# ---------- 4. Trend glimpse ---------- #}
+    <section class="card panel">
+        <h2>Последние 7 дней</h2>
+        <div class="trend-row">
+            {% for label, height in trend_days %}
+                <div class="trend-bar-col">
+                    <div class="trend-bar" style="height: {{ height }}%;"></div>
+                    <span class="trend-label">{{ label }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function () {
+    function selectMood(group, input, value) {
+        input.value = value;
+        group.querySelectorAll('.mood-btn').forEach(function (b) {
+            b.classList.toggle('selected', b.dataset.value === String(value));
+        });
+    }
+    function selectPill(group, input, value) {
+        input.value = value;
+        group.querySelectorAll('.pill-btn').forEach(function (b) {
+            b.classList.toggle('selected', b.dataset.value === String(value));
+        });
+    }
+    function selectDot(group, input, value) {
+        input.value = value;
+        group.querySelectorAll('.dot-btn').forEach(function (b) {
+            var filled = Number(b.dataset.value) <= Number(value);
+            b.classList.toggle('filled', filled);
+            b.classList.toggle('selected', b.dataset.value === String(value));
+        });
+    }
+    function checkComplete() {
+        var form = document.getElementById('checkin-form');
+        if (!form) return;
+        var submit = document.getElementById('checkin-submit');
+        var mood = document.getElementById('id_mood').value;
+        var energy = document.getElementById('id_energy').value;
+        var stress = document.getElementById('id_stress').value;
+        var sleep = document.getElementById('id_sleep_hours').value;
+        submit.disabled = !(mood && energy && stress && sleep);
+    }
+
+    document.querySelectorAll('.mood-row').forEach(function (group) {
+        var input = document.getElementById(group.dataset.target);
+        if (!input) return;
+        group.querySelectorAll('.mood-btn').forEach(function (b) {
+            b.addEventListener('click', function () { selectMood(group, input, b.dataset.value); checkComplete(); });
+        });
+        if (input.value) selectMood(group, input, input.value);
+    });
+    document.querySelectorAll('.dot-row').forEach(function (group) {
+        var input = document.getElementById(group.dataset.target);
+        if (!input) return;
+        group.querySelectorAll('.dot-btn').forEach(function (b) {
+            b.addEventListener('click', function () { selectDot(group, input, b.dataset.value); checkComplete(); });
+        });
+        if (input.value) selectDot(group, input, input.value);
+    });
+    document.querySelectorAll('.pill-row').forEach(function (group) {
+        var input = document.getElementById(group.dataset.target);
+        if (!input) return;
+        group.querySelectorAll('.pill-btn').forEach(function (b) {
+            b.addEventListener('click', function () { selectPill(group, input, b.dataset.value); checkComplete(); });
+        });
+        if (input.value) selectPill(group, input, input.value);
+    });
+    checkComplete();
+
+    var editToggle = document.getElementById('checkin-edit-toggle');
+    if (editToggle) {
+        editToggle.addEventListener('click', function () {
+            document.getElementById('checkin-confirmation').style.display = 'none';
+            document.getElementById('checkin-form-wrap').style.display = '';
+        });
+    }
+})();
+</script>
 {% endblock %}

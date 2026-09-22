@@ -22,3 +22,13 @@ class SignupView(CreateView):
 
 class CustomLoginView(LoginView):
     form_class = StyledAuthenticationForm
+
+
+def my_data(request):
+    return placeholder_page(
+        request,
+        "Мои данные",
+        "Скоро здесь можно будет посмотреть, скачать или удалить все свои данные — "
+        "отметки самочувствия, ответы опросников и историю рекомендаций. Ты полностью "
+        "управляешь тем, что хранится.",
+    )
