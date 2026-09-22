@@ -7,13 +7,157 @@
     <section class="card panel">
         <h2>Быстрая помощь</h2>
         <p class="panel-sub">
-            Здесь скоро появятся короткие практики на 2–5 минут — дыхание, заземление, снятие
-            острого стресса — которые можно сделать сразу, без подготовки.
+            Короткие практики на 2–5 минут, которые можно сделать прямо сейчас, без подготовки —
+            дыхание и небольшая пауза, чтобы немного снизить остроту момента.
         </p>
-        <p class="placeholder-tag">Скоро здесь появится...</p>
+    </section>
+
+    <section class="card panel breathing-panel" id="breathing">
+        <h2>Квадратное дыхание</h2>
+        <p class="panel-sub">
+            Простой способ немного успокоить тело за 1–2 минуты. Смотри на круг и дыши в его темпе:
+            вдох, задержка, выдох, задержка — каждая часть по 4 секунды. Можно повторить сколько угодно раз.
+        </p>
+
+        <div class="breathing-widget">
+            <div class="breathing-circle" id="breathingCircle">
+                <span class="breathing-phase" id="breathingPhase">Нажми «Начать»</span>
+                <span class="breathing-count" id="breathingCount"></span>
+            </div>
+            <div class="breathing-controls">
+                <button type="button" class="btn btn-primary" id="breathingStart">Начать</button>
+                <button type="button" class="btn btn-link" id="breathingStop" style="display:none;">Остановить</button>
+            </div>
+            <p class="breathing-cycles" id="breathingCycles" aria-live="polite"></p>
+        </div>
+    </section>
+
+    <section class="card panel">
+        <h2>5 минут на паузу</h2>
+        <p class="panel-sub">
+            Если не хочется дышать по кругу, а хочется просто ненадолго остановиться — вот короткая
+            текстовая практика. Читай по одному шагу, не торопясь.
+        </p>
+        <ol class="pause-steps">
+            <li>
+                Останови то, чем занимаешься, хотя бы на 5 минут. Не нужно уходить далеко — просто
+                позволь себе не продолжать ещё одну минуту.
+            </li>
+            <li>
+                Сядь или встань так, чтобы спине было удобно. Если можешь — опусти плечи вниз и
+                разожми челюсть, она часто сжимается незаметно для нас самих.
+            </li>
+            <li>
+                Сделай пять медленных вдохов через нос и медленных выдохов через рот — выдох чуть
+                длиннее вдоха. Не нужно считать секунды, просто замедлись.
+            </li>
+            <li>
+                Оглядись вокруг и назови (вслух или про себя) три предмета, которые видишь. Это
+                помогает вниманию немного отойти от потока мыслей.
+            </li>
+            <li>
+                Спроси себя: «Что мне нужно прямо сейчас — вода, воздух, тишина, поддержка?» Не
+                обязательно сразу это делать — достаточно просто заметить ответ.
+            </li>
+            <li>
+                Когда будешь готов(а) — возвращайся к тому, чем занимался(ась). Не обязательно
+                чувствовать себя полностью иначе: даже небольшое смягчение уже засчитывается.
+            </li>
+        </ol>
+    </section>
+
+    <section class="card panel">
+        <h2>Если хочется поговорить с человеком</h2>
+        <p class="panel-sub">Эти контакты можно использовать в любой момент, не только в кризис.</p>
+        <ul class="crisis-contacts">
+            {% for contact in contacts %}
+                <li>
+                    <strong>{{ contact.name }}</strong>
+                    <span>{{ contact.phone }} — {{ contact.available }}</span>
+                </li>
+            {% endfor %}
+        </ul>
         <p class="mt-3">
-            Если тебе прямо сейчас очень плохо, не нужно ждать — <a href="{% url 'safety:crisis' %}">открой страницу «Мне сейчас очень плохо»</a>.
+            Если тебе прямо сейчас очень плохо — <a href="{% url 'safety:crisis' %}">открой страницу «Мне сейчас очень плохо»</a>.
         </p>
     </section>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function () {
+    var PHASES = [
+        { key: "inhale", label: "Вдох", duration: 4 },
+        { key: "hold1", label: "Задержка", duration: 4 },
+        { key: "exhale", label: "Выдох", duration: 4 },
+        { key: "hold2", label: "Задержка", duration: 4 }
+    ];
+
+    var circle = document.getElementById("breathingCircle");
+    var phaseLabel = document.getElementById("breathingPhase");
+    var countLabel = document.getElementById("breathingCount");
+    var startBtn = document.getElementById("breathingStart");
+    var stopBtn = document.getElementById("breathingStop");
+    var cyclesLabel = document.getElementById("breathingCycles");
+
+    if (!circle || !startBtn || !stopBtn) {
+        return;
+    }
+
+    var timerId = null;
+    var phaseIndex = 0;
+    var secondsLeft = 0;
+    var cycles = 0;
+
+    function applyPhaseClass() {
+        circle.classList.remove("phase-inhale", "phase-hold1", "phase-exhale", "phase-hold2");
+        circle.classList.add("phase-" + PHASES[phaseIndex].key);
+    }
+
+    function tick() {
+        secondsLeft -= 1;
+        if (secondsLeft <= 0) {
+            phaseIndex = (phaseIndex + 1) % PHASES.length;
+            if (phaseIndex === 0) {
+                cycles += 1;
+                cyclesLabel.textContent = "Циклов пройдено: " + cycles;
+            }
+            secondsLeft = PHASES[phaseIndex].duration;
+            phaseLabel.textContent = PHASES[phaseIndex].label;
+            applyPhaseClass();
+        }
+        countLabel.textContent = secondsLeft;
+    }
+
+    function start() {
+        phaseIndex = 0;
+        cycles = 0;
+        secondsLeft = PHASES[0].duration;
+        phaseLabel.textContent = PHASES[0].label;
+        countLabel.textContent = secondsLeft;
+        cyclesLabel.textContent = "";
+        applyPhaseClass();
+        circle.classList.add("breathing-active");
+        startBtn.style.display = "none";
+        stopBtn.style.display = "";
+        timerId = window.setInterval(tick, 1000);
+    }
+
+    function stop() {
+        if (timerId) {
+            window.clearInterval(timerId);
+            timerId = null;
+        }
+        circle.classList.remove("breathing-active", "phase-inhale", "phase-hold1", "phase-exhale", "phase-hold2");
+        phaseLabel.textContent = "Нажми «Начать»";
+        countLabel.textContent = "";
+        startBtn.style.display = "";
+        stopBtn.style.display = "none";
+    }
+
+    startBtn.addEventListener("click", start);
+    stopBtn.addEventListener("click", stop);
+})();
+</script>
 {% endblock %}

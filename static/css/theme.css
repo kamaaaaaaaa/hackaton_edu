@@ -474,6 +474,143 @@ a:hover {
   margin: 0;
 }
 
+/* ---- Article filters (list page) ---- */
+.article-filters {
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--card-border);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.article-filter-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.article-search {
+  flex: 1;
+  min-width: 200px;
+}
+.article-filter-selects select {
+  flex: 1;
+  min-width: 160px;
+}
+
+/* ---- Article list items as links ---- */
+.article-item-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+.article-item-link:hover .article-title {
+  color: var(--teal);
+}
+
+/* ---- Article detail page ---- */
+.article-back {
+  display: inline-block;
+  font-size: 0.85rem;
+  margin-bottom: 12px;
+}
+.article-detail h2 {
+  margin-top: 4px;
+  margin-bottom: 16px;
+}
+.article-body {
+  color: var(--text);
+  line-height: 1.65;
+  margin-bottom: 8px;
+}
+.article-practice,
+.article-sources {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--card-border);
+}
+.article-practice h3,
+.article-sources h3 {
+  font-size: 1.05rem;
+  margin-bottom: 8px;
+}
+.article-sources {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+/* ---- Breathing exercise (box breathing) ---- */
+.breathing-widget {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 28px 0 12px;
+}
+.breathing-circle {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: var(--teal-soft);
+  border: 2px solid var(--teal);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  text-align: center;
+  transform: scale(0.62);
+  transition: transform 4s ease-in-out;
+}
+.breathing-circle.phase-inhale {
+  transform: scale(1);
+  transition: transform 4s ease-in-out;
+}
+.breathing-circle.phase-hold1 {
+  transform: scale(1);
+  transition: transform 0.2s ease-in-out;
+}
+.breathing-circle.phase-exhale {
+  transform: scale(0.62);
+  transition: transform 4s ease-in-out;
+}
+.breathing-circle.phase-hold2 {
+  transform: scale(0.62);
+  transition: transform 0.2s ease-in-out;
+}
+.breathing-phase {
+  font-weight: 500;
+  color: var(--teal);
+  font-size: 0.95rem;
+}
+.breathing-count {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.breathing-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.breathing-cycles {
+  color: var(--muted);
+  font-size: 0.85rem;
+  min-height: 1.2em;
+  margin: 0;
+}
+
+/* ---- 5-minute pause steps ---- */
+.pause-steps {
+  color: var(--text);
+  padding-left: 1.3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pause-steps li {
+  padding-left: 4px;
+}
+
 /* ---- Crisis contacts ---- */
 .crisis-contacts {
   list-style: none;
@@ -567,4 +704,79 @@ a:hover {
     color: var(--teal);
     font-weight: 500;
   }
+}
+
+/* ---- Baseline status pill variants (checkins/services.py statuses) ---- */
+.baseline-teal {
+  background: var(--teal-soft);
+  color: var(--teal);
+  border: 1px solid var(--teal);
+}
+.baseline-muted {
+  background: var(--bg);
+  color: var(--muted);
+  border: 1px solid var(--card-border);
+}
+.baseline-rose {
+  background: #F4DEDA;
+  color: #8C3B2E;
+  border: 1px solid #E2B6AC;
+}
+
+/* ---- Events: add-event form + upcoming list ---- */
+.event-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.event-item {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--card-border);
+}
+.event-item:last-child {
+  border-bottom: none;
+}
+.event-item-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.event-item-title {
+  font-weight: 500;
+}
+.event-item-meta {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.event-item-forecast {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin: 6px 0 0;
+}
+
+/* ---- Progress page: week summary / sleep-pattern stat tiles ---- */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 16px;
+}
+.summary-stat {
+  background: var(--teal-soft);
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.summary-stat-value {
+  font-family: 'Source Serif 4', serif;
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--teal);
+}
+.summary-stat-label {
+  color: var(--muted);
+  font-size: 0.8rem;
 }
