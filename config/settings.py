@@ -186,6 +186,15 @@ WEEKLY_SURVEY_INTERVAL_DAYS = env.int("WEEKLY_SURVEY_INTERVAL_DAYS", default=7)
 ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY", default="")
 AI_MODEL = env("AI_MODEL", default="claude-haiku-4-5-20251001")
 
+# Crisis-detection keyword list — a hard rule, not AI (see safety/services.py).
+# Deliberately simple/blunt: false positives are cheap (worst case, someone
+# sees a calm support page they didn't need), false negatives are not.
+CRISIS_KEYWORDS = [
+    "суицид", "покончить с собой", "не хочу жить", "хочу умереть",
+    "самоповрежд", "порезать себя", "резать себя",
+    "нет смысла жить", "безысходност", "не вижу выхода",
+]
+
 
 # Production security hardening (Render deploys behind HTTPS)
 if not DEBUG:
