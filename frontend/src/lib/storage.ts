@@ -1,0 +1,28 @@
+// Безопасная обёртка над localStorage: всё в try/catch, чтобы приложение
+// работало в приватном окне и при заблокированном хранилище.
+
+export function readJSON<T>(key: string, fallback: T): T {
+  try {
+    const raw = localStorage.getItem(key)
+    if (!raw) return fallback
+    return JSON.parse(raw) as T
+  } catch {
+    return fallback
+  }
+}
+
+export function writeJSON<T>(key: string, value: T): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(value))
+  } catch {
+    /* приватный режим / переполнение — тихо игнорируем */
+  }
+}
+
+export const STORAGE_KEYS = {
+  family: 'gkt.family.v1',
+  meetingPoint: 'gkt.family.meetingPoint.v1',
+  checklist: 'gkt.checklist.v1',
+  lang: 'gkt.lang.v1',
+  house: 'gkt.house.lastSelected.v1',
+} as const
