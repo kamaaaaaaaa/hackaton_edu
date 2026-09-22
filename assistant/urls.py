@@ -6,4 +6,5 @@ app_name = "assistant"
 
 urlpatterns = [
     path("", views.index, name="index"),
+    path("recommendations/<int:pk>/feedback/", views.give_feedback, name="feedback"),
 ]

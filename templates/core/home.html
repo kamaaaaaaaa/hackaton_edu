@@ -7,6 +7,15 @@
 
     <p class="page-date">{{ today_display }}</p>
 
+    {# ---------- Weekly survey reminder ---------- #}
+    {% if survey_due %}
+        <section class="card panel survey-reminder">
+            <h2>Еженедельный опросник</h2>
+            <p class="panel-sub">Пора пройти короткий опросник о самочувствии за неделю — это займёт около двух минут.</p>
+            <a class="btn btn-outline-primary" href="{% url 'surveys:form' %}">Пройти опросник</a>
+        </section>
+    {% endif %}
+
     {# ---------- 1. Check-in widget ---------- #}
     <section class="card panel checkin-panel">
         {% if not user.is_authenticated %}
@@ -48,19 +57,34 @@
     {# ---------- 3. AI recommendations ---------- #}
     <section class="panel">
         <h2>Что можно попробовать</h2>
-        <div class="rec-grid">
-            {% for rec in recommendations %}
-                <div class="card rec-card">
-                    <h3 class="rec-title">{{ rec.title }}</h3>
-                    <p class="rec-why"><span class="rec-why-label">Почему я это вижу:</span> {{ rec.why }}</p>
-                    <a class="rec-link" href="{% url 'articles:list' %}">Читать статью →</a>
-                    <div class="rec-feedback">
-                        <button type="button" class="btn btn-sm btn-outline-feedback">Помогло</button>
-                        <button type="button" class="btn btn-sm btn-outline-feedback">Не помогло</button>
+        {% if recommendations %}
+            <div class="rec-grid">
+                {% for rec in recommendations %}
+                    <div class="card rec-card">
+                        <h3 class="rec-title">{{ rec.text }}</h3>
+                        {% if rec.why_explanation %}
+                            <p class="rec-why"><span class="rec-why-label">Почему я это вижу:</span> {{ rec.why_explanation }}</p>
+                        {% endif %}
+                        {% if rec.article %}
+                            <a class="rec-link" href="{% url 'articles:detail' rec.article.id %}">Читать статью →</a>
+                        {% endif %}
+                        {% if rec.feedback == "none" %}
+                            <form method="post" action="{% url 'assistant:feedback' rec.id %}" class="rec-feedback">
+                                {% csrf_token %}
+                                <button type="submit" name="feedback" value="helped" class="btn btn-sm btn-outline-feedback">Помогло</button>
+                                <button type="submit" name="feedback" value="not_helped" class="btn btn-sm btn-outline-feedback">Не помогло</button>
+                            </form>
+                        {% else %}
+                            <p class="rec-feedback-done panel-sub">Спасибо за отзыв{% if rec.feedback == "helped" %} — рады, что помогло{% endif %}.</p>
+                        {% endif %}
                     </div>
-                </div>
-            {% endfor %}
-        </div>
+                {% endfor %}
+            </div>
+        {% elif user.is_authenticated %}
+            <p class="panel-sub">Сделай отметку на сегодня — и здесь появятся рекомендации, подобранные для тебя.</p>
+        {% else %}
+            <p class="panel-sub">Войди, чтобы получать персональные рекомендации.</p>
+        {% endif %}
     </section>
 
     {# ---------- 4. Trend glimpse ---------- #}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}{{ article.title }} | AntiВыгорание{% endblock %}
+
+{% block content %}
+<div class="quiet-column">
+    <section class="card panel article-detail">
+        <a href="{% url 'articles:list' %}" class="article-back">← Все статьи</a>
+        <p class="article-meta">{{ article.get_category_display }} · {{ article.get_audience_display }} · {{ article.read_minutes }} мин чтения</p>
+        <h2>{{ article.title }}</h2>
+
+        <div class="article-body">
+            {{ article.body|linebreaks }}
+        </div>
+
+        {% if article.practice_5min %}
+            <div class="article-practice">
+                <h3>Практика на 5 минут</h3>
+                {{ article.practice_5min|linebreaks }}
+            </div>
+        {% endif %}
+
+        {% if article.sources %}
+            <div class="article-sources">
+                <h3>Источники</h3>
+                {{ article.sources|linebreaks }}
+            </div>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}
