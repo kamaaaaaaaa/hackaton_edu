@@ -160,6 +160,42 @@ export const ru = {
   'footer.tagline': 'Готов к толчку — гражданский проект подготовки к землетрясению.',
   'footer.demo': 'Демо-версия. Данные о домах — предварительная оценка.',
   'footer.map': 'Карта · OpenStreetMap',
+  'footer.dev': 'Разработчик',
+
+  // ---------- Аутентификация ----------
+  'auth.username': 'Имя пользователя',
+  'auth.usernamePlaceholder': 'Напр. aigerim',
+  'auth.email': 'Email',
+  'auth.emailPlaceholder': 'you@example.com',
+  'auth.password': 'Пароль',
+  'auth.passwordPlaceholder': 'Не меньше 8 символов',
+  'auth.login.title': 'Вход',
+  'auth.login.subtitle': 'Войдите, чтобы синхронизировать свои данные.',
+  'auth.login.submit': 'Войти',
+  'auth.login.submitting': 'Входим…',
+  'auth.login.noAccount': 'Нет аккаунта?',
+  'auth.login.toRegister': 'Зарегистрироваться',
+  'auth.register.title': 'Регистрация',
+  'auth.register.subtitle': 'Создайте аккаунт за пару секунд.',
+  'auth.register.submit': 'Зарегистрироваться',
+  'auth.register.submitting': 'Регистрируем…',
+  'auth.register.haveAccount': 'Уже есть аккаунт?',
+  'auth.register.toLogin': 'Войти',
+  'header.login': 'Войти',
+  'header.register': 'Регистрация',
+  'header.logout': 'Выйти',
+
+  // ---------- Панель разработчика ----------
+  'dev.title': 'Панель разработчика',
+  'dev.subtitle': 'Внутренняя аналитика использования приложения.',
+  'dev.stats.total': 'Всего событий',
+  'dev.stats.last24h': 'За последние 24 часа',
+  'dev.stats.byType': 'По типам событий',
+  'dev.loading': 'Загружаем аналитику…',
+  'dev.error': 'Не удалось загрузить аналитику.',
+  'dev.noEvents': 'Событий пока нет.',
+  'dev.generatedAt': 'Обновлено',
+  'dev.adminCta': 'Открыть Django admin',
 } as const
 
 export type TranslationKey = keyof typeof ru

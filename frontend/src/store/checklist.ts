@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { readJSON, writeJSON, STORAGE_KEYS } from '@/lib/storage'
 import { CHECKLIST_ITEMS } from '@/data/checklist'
+import { trackEvent } from '@/api/analytics'
 
 type CheckedMap = Record<string, boolean>
 
@@ -13,7 +14,15 @@ export function useChecklist() {
   useEffect(() => writeJSON(STORAGE_KEYS.checklist, checked), [checked])
 
   const toggle = useCallback(
-    (id: string) => setChecked((prev) => ({ ...prev, [id]: !prev[id] })),
+    (id: string) =>
+      setChecked((prev) => {
+        const next = { ...prev, [id]: !prev[id] }
+        const doneNext = CHECKLIST_ITEMS.filter((item) => next[item.id]).length
+        if (CHECKLIST_ITEMS.length > 0 && doneNext === CHECKLIST_ITEMS.length) {
+          trackEvent('checklist_completed')
+        }
+        return next
+      }),
     [],
   )
   const reset = useCallback(() => setChecked({}), [])

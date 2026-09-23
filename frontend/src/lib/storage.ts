@@ -28,4 +28,5 @@ export const STORAGE_KEYS = {
   groupCode: 'gkt.family.groupCode.v1',
   myMemberId: 'gkt.family.myMemberId.v1',
   myToken: 'gkt.family.myToken.v1',
+  authToken: 'gkt.auth.token.v1',
 } as const

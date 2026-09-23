@@ -6,6 +6,7 @@ import { HouseCard } from '@/components/HouseCard'
 import { Spinner } from '@/components/Spinner'
 import { IconRoute } from '@/components/icons'
 import { getAssemblyPoints, getHouse, type AssemblyPoint } from '@/api'
+import { trackEvent } from '@/api/analytics'
 import { nearestPoint, formatDistance } from '@/lib/geo'
 import { useSelectedHouse } from '@/store/house'
 import { useI18n } from '@/i18n'
@@ -54,6 +55,7 @@ export function MapScreen() {
     try {
       const h = await getHouse({ lat: s.lat, lon: s.lon, address: s.shortLabel || s.label })
       setHouse(h)
+      trackEvent('house_checked', { risk: h.risk })
       setShowRoute(true)
     } finally {
       setLoadingHouse(false)

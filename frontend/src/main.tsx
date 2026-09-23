@@ -6,14 +6,17 @@ import './index.css'
 import App from './App'
 import { I18nProvider } from './i18n'
 import { AlertProvider } from './store/alert'
+import { AuthProvider } from './store/auth'
 
 createRoot(document.getElementById('root') as HTMLElement).render(
   <StrictMode>
     <BrowserRouter>
       <I18nProvider>
-        <AlertProvider>
-          <App />
-        </AlertProvider>
+        <AuthProvider>
+          <AlertProvider>
+            <App />
+          </AlertProvider>
+        </AuthProvider>
       </I18nProvider>
     </BrowserRouter>
   </StrictMode>,

@@ -6,6 +6,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
+import { trackEvent } from '@/api/analytics'
 
 interface AlertValue {
   active: boolean
@@ -18,7 +19,10 @@ const AlertContext = createContext<AlertValue | null>(null)
 
 export function AlertProvider({ children }: { children: ReactNode }) {
   const [active, setActive] = useState(false)
-  const trigger = useCallback(() => setActive(true), [])
+  const trigger = useCallback(() => {
+    setActive(true)
+    trackEvent('alert_triggered')
+  }, [])
   const dismiss = useCallback(() => setActive(false), [])
   const value = useMemo(() => ({ active, trigger, dismiss }), [active, trigger, dismiss])
   return <AlertContext.Provider value={value}>{children}</AlertContext.Provider>

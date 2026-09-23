@@ -3,6 +3,7 @@ import { Logo } from './Logo'
 import { LangSwitch } from './LangSwitch'
 import { useI18n, type TranslationKey } from '@/i18n'
 import { useAlert } from '@/store/alert'
+import { useAuth } from '@/store/auth'
 
 const NAV: { to: string; key: TranslationKey }[] = [
   { to: '/map', key: 'nav.map' },
@@ -13,6 +14,7 @@ const NAV: { to: string; key: TranslationKey }[] = [
 export function Header() {
   const { t } = useI18n()
   const { trigger } = useAlert()
+  const { user, logout } = useAuth()
 
   return (
     <header className="sticky top-0 z-[900] border-b border-line/80 bg-white/80 backdrop-blur">
@@ -46,6 +48,37 @@ export function Header() {
             <span className="h-1.5 w-1.5 rounded-full bg-risk-high animate-alert-pulse" />
             {t('alarm.badge')}
           </button>
+
+          {user ? (
+            <div className="hidden items-center gap-1.5 sm:flex">
+              <span className="rounded-full bg-mist px-3 py-1.5 text-xs font-semibold text-navy-700">
+                {user.username}
+              </span>
+              <button
+                type="button"
+                onClick={() => logout()}
+                className="rounded-full px-2.5 py-1.5 text-xs font-semibold text-subink transition hover:text-risk-high"
+              >
+                {t('header.logout')}
+              </button>
+            </div>
+          ) : (
+            <div className="hidden items-center gap-1.5 sm:flex">
+              <Link
+                to="/login"
+                className="rounded-full px-2.5 py-1.5 text-xs font-semibold text-subink transition hover:text-navy-700"
+              >
+                {t('header.login')}
+              </Link>
+              <Link
+                to="/register"
+                className="rounded-full bg-mist px-3 py-1.5 text-xs font-semibold text-navy-700 transition hover:bg-line"
+              >
+                {t('header.register')}
+              </Link>
+            </div>
+          )}
+
           <LangSwitch />
         </div>
       </div>

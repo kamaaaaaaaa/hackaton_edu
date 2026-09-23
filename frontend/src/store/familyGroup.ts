@@ -9,6 +9,7 @@ import {
   type GroupMemberDTO,
 } from '@/api/groups'
 import { readJSON, writeJSON, STORAGE_KEYS } from '@/lib/storage'
+import { trackEvent } from '@/api/analytics'
 
 const POLL_MS = 6000
 
@@ -87,6 +88,7 @@ export function useFamilyGroup() {
       setMyMemberId(res.member.id)
       setMyToken(res.member.token)
       setMembers([toFamilyMember(res.member, res.member.id)])
+      trackEvent('group_created')
     } catch (e) {
       const message = errorMessage(e, 'Не удалось создать семью. Попробуйте ещё раз.')
       setError(message)
@@ -111,6 +113,7 @@ export function useFamilyGroup() {
       setMyMemberId(res.member.id)
       setMyToken(res.member.token)
       setMembers([toFamilyMember(res.member, res.member.id)])
+      trackEvent('group_joined')
     } catch (e) {
       const message = errorMessage(e, 'Не удалось присоединиться. Проверьте код.')
       setError(message)
@@ -126,6 +129,7 @@ export function useFamilyGroup() {
       // Оптимистичное обновление — не ждём ответа, чтобы кнопка чувствовалась мгновенной.
       // Запоминаем прошлый статус, чтобы откатить его, если сервер откажет (403/404/400).
       const previousStatus = members.find((m) => m.isSelf)?.status
+      if (status === 'safe') trackEvent('status_safe')
       setMembers((prev) =>
         prev.map((m) =>
           m.isSelf ? { ...m, status, updatedAt: new Date().toISOString() } : m,
