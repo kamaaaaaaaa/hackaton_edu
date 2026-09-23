@@ -24,5 +24,10 @@ class SpaServingTests(TestCase):
         self.assertEqual(response.status_code, 302)
 
     def test_api_still_reachable_through_the_catch_all(self):
+        # /api/analytics/summary/ requires admin auth (see analytics.tests),
+        # so an unauthenticated request 401s — the point here is only that
+        # it's routed to the real API view and not swallowed by the SPA
+        # catch-all (which would 200 with the index.html shell instead).
         response = self.client.get("/api/analytics/summary/")
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 401)
+        self.assertNotIn(b"<div id=\"root\">", response.content)

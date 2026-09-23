@@ -6,6 +6,8 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
+from authapi.auth import get_token_from_request
+
 from .models import AnalyticsEvent
 
 
@@ -44,9 +46,12 @@ def track(request):
 @csrf_exempt
 @require_http_methods(['GET'])
 def summary(request):
-    # NOTE: intentionally open for hackathon-demo simplicity — not gated
-    # behind isStaff. A real product would restrict this to staff users
-    # via the Authorization header helper from authapi.auth.
+    token, error_message = get_token_from_request(request)
+    if error_message:
+        return JsonResponse({'error': error_message}, status=401)
+    if not token.user.is_staff:
+        return JsonResponse({'error': 'Доступ только для администраторов'}, status=403)
+
     now = timezone.now()
     since = now - timezone.timedelta(hours=24)
 

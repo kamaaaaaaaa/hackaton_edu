@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { getAnalyticsSummary, type AnalyticsSummary } from '@/api/analytics'
+import { useAuth } from '@/store/auth'
 import { useI18n } from '@/i18n'
 import { Odometer } from '@/components/ui/Odometer'
 import { Spinner } from '@/components/ui/motion'
@@ -8,22 +10,64 @@ const ADMIN_URL = 'https://hackathon-base.onrender.com/admin/'
 
 export function DevPanel() {
   const { t, lang } = useI18n()
+  const { user, token, loading: authLoading } = useAuth()
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
 
+  const isStaff = Boolean(user?.isStaff)
+
   useEffect(() => {
+    if (!token || !isStaff) {
+      setLoading(false)
+      return
+    }
     let alive = true
     setLoading(true)
     setError(false)
-    getAnalyticsSummary()
+    getAnalyticsSummary(token)
       .then((res) => alive && setSummary(res))
       .catch(() => alive && setError(true))
       .finally(() => alive && setLoading(false))
     return () => {
       alive = false
     }
-  }, [])
+  }, [token, isStaff])
+
+  if (authLoading) {
+    return (
+      <div className="container-px py-8 md:py-12">
+        <span className="cap">DEV · ANALYTICS</span>
+        <h1 className="mt-2 font-display text-display font-bold">{t('dev.title')}</h1>
+        <div className="card mt-6 flex items-center gap-2 p-5 text-muted">
+          <Spinner /> {t('dev.loading')}
+        </div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="container-px py-8 md:py-12">
+        <span className="cap">DEV · ANALYTICS</span>
+        <h1 className="mt-2 font-display text-display font-bold">{t('dev.title')}</h1>
+        <div className="card mt-6 p-5 font-medium text-signal-ink">{t('dev.needLogin')}</div>
+        <Link to="/login" className="btn btn-ink mt-4">
+          {t('dev.needLoginCta')}
+        </Link>
+      </div>
+    )
+  }
+
+  if (!isStaff) {
+    return (
+      <div className="container-px py-8 md:py-12">
+        <span className="cap">DEV · ANALYTICS</span>
+        <h1 className="mt-2 font-display text-display font-bold">{t('dev.title')}</h1>
+        <div className="card mt-6 p-5 font-medium text-signal-ink">{t('dev.forbidden')}</div>
+      </div>
+    )
+  }
 
   const byType = summary ? Object.entries(summary.byEventType).sort((a, b) => b[1] - a[1]) : []
   const fmtDate = (iso: string) => {
