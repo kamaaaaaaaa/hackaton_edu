@@ -1,173 +1,296 @@
+import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { useI18n, type TranslationKey } from '@/i18n'
-import { IconMap, IconUsers, IconRoute, IconChevron } from '@/components/icons'
-import type { ComponentType, SVGProps } from 'react'
+import { countDistricts, getAssemblyPoints, OFFICIAL_TOTAL } from '@/api'
+import { useAlert } from '@/store/alert'
+import { SeismoCanvas } from '@/components/ui/SeismoCanvas'
+import { RevealWave } from '@/components/ui/RevealWave'
+import { Odometer } from '@/components/ui/Odometer'
+import { Magnetic } from '@/components/ui/Magnetic'
+import { Reveal, SplitText } from '@/components/ui/motion'
+import { InstallButton } from '@/components/layout/InstallButton'
+import {
+  IconAlert,
+  IconArrowRight,
+  IconGauge,
+  IconMap,
+  IconShare,
+  IconTimer,
+  IconUsers,
+  IconWifiOff,
+} from '@/components/ui/icons'
 
-function HeroVisual() {
+function Stat({ value, label, pad = 0 }: { value: number; label: string; pad?: number }) {
   return (
-    <div className="relative isolate mx-auto w-full max-w-md">
-      <div className="glass overflow-hidden p-5">
-        <div className="rounded-2xl bg-navy-sheen p-5 text-white">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/70">
-              Almaty · live
-            </span>
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-white/80">
-              <span className="h-1.5 w-1.5 rounded-full bg-spark animate-alert-pulse" />
-              seismic
-            </span>
-          </div>
+    <div className="px-3 py-6 first:pl-0 sm:px-6">
+      <Odometer value={value} pad={pad} className="text-[clamp(2.4rem,8.5vw,5.5rem)] font-semibold tracking-tight text-ink" />
+      <div className="cap mt-2 max-w-[14rem]">{label}</div>
+    </div>
+  )
+}
 
-          {/* Стилизованный сейсмо-пульс */}
-          <svg viewBox="0 0 320 90" className="mt-4 h-20 w-full" fill="none" aria-hidden="true">
-            <path
-              d="M0 45 H70 L86 20 L104 72 L122 8 L140 62 L156 45 H210 L226 30 L242 58 L258 45 H320"
-              stroke="#3B6BFF"
-              strokeWidth="3"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-
-          {/* Мини-карта с пульсирующим маркером */}
-          <div className="relative mt-4 h-28 overflow-hidden rounded-xl bg-white/5 ring-1 ring-white/10">
-            <div className="absolute inset-0 bg-grid-faint [background-size:22px_22px] opacity-40" />
-            <span className="absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-spark ring-4 ring-spark/25" />
-            <span className="absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 animate-ping rounded-full bg-spark/60" />
-          </div>
+function McsBanner() {
+  const { t } = useI18n()
+  const { trigger } = useAlert()
+  return (
+    <div className="card overflow-hidden">
+      <div className="flex items-center gap-2 border-b border-line bg-paper/70 px-4 py-2.5">
+        <span className="h-2 w-2 rounded-full bg-signal animate-blink" />
+        <span className="cap">{t('mcs.cap')}</span>
+        <span className="cap ml-auto">MAGNITUDE · —</span>
+      </div>
+      <div className="grid gap-4 p-5 sm:grid-cols-[1fr_auto] sm:items-center">
+        <div>
+          <div className="font-display text-lg font-semibold">{t('mcs.title')}</div>
+          <p className="mt-1 max-w-lg text-sm text-muted">{t('mcs.body')}</p>
         </div>
+        <Magnetic>
+          <button type="button" onClick={trigger} className="btn btn-signal buzz-parent">
+            <IconAlert className="buzz" width={19} height={19} />
+            {t('alarm.simulate')}
+          </button>
+        </Magnetic>
       </div>
     </div>
   )
 }
 
-function Fact({ valueKey, labelKey }: { valueKey: TranslationKey; labelKey: TranslationKey }) {
+function Step({ n, title, body }: { n: string; title: TranslationKey; body: TranslationKey }) {
   const { t } = useI18n()
   return (
-    <div>
-      <div className="font-display text-2xl font-extrabold text-navy-700">{t(valueKey)}</div>
-      <div className="mt-1 text-xs leading-snug text-subink">{t(labelKey)}</div>
+    <div className="card lift h-full p-6">
+      <div className="font-mono text-5xl font-semibold text-accent">{n}</div>
+      <h3 className="mt-6 font-display text-lg font-semibold">{t(title)}</h3>
+      <p className="mt-2 text-[15px] leading-relaxed text-muted">{t(body)}</p>
     </div>
   )
 }
 
-function StepCard({
-  n,
-  Icon,
-  titleKey,
-  bodyKey,
+function Tool({
+  to,
+  icon,
+  title,
+  body,
+  className = '',
+  children,
 }: {
-  n: number
-  Icon: ComponentType<SVGProps<SVGSVGElement>>
-  titleKey: TranslationKey
-  bodyKey: TranslationKey
+  to: string
+  icon: ReactNode
+  title: TranslationKey
+  body: TranslationKey
+  className?: string
+  children?: ReactNode
 }) {
   const { t } = useI18n()
   return (
-    <div className="card p-6 transition hover:-translate-y-0.5 hover:shadow-lift">
-      <div className="flex items-center justify-between">
-        <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-mist text-navy-700">
-          <Icon width={22} height={22} />
+    <Link to={to} className={`card lift buzz-parent group flex flex-col overflow-hidden ${className}`}>
+      <div className="flex items-start justify-between p-5">
+        <span className="grid h-10 w-10 place-items-center rounded-xl border border-line bg-paper text-ink">
+          <span className="buzz">{icon}</span>
         </span>
-        <span className="font-display text-3xl font-extrabold text-line">{n}</span>
+        <IconArrowRight className="text-faint transition-transform duration-300 group-hover:translate-x-1" width={20} height={20} />
       </div>
-      <h3 className="mt-4 font-display text-lg font-bold text-ink">{t(titleKey)}</h3>
-      <p className="mt-1.5 text-sm leading-relaxed text-subink">{t(bodyKey)}</p>
+      {children}
+      <div className="mt-auto p-5 pt-3">
+        <h3 className="font-display text-base font-semibold">{t(title)}</h3>
+        <p className="mt-1 text-sm text-muted">{t(body)}</p>
+      </div>
+    </Link>
+  )
+}
+
+/** Схема карты для бенто: эпицентр + маршрут на миллиметровке. */
+function MapSketch() {
+  return (
+    <div className="relative mx-5 h-44 overflow-hidden rounded-xl border border-line bg-mm md:h-auto md:flex-1">
+      <svg viewBox="0 0 300 180" preserveAspectRatio="xMidYMid slice" className="absolute inset-0 h-full w-full" aria-hidden>
+        <path d="M70 130 L110 130 L110 95 L170 95 L170 60 L228 60" fill="none" stroke="#fff" strokeWidth="9" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M70 130 L110 130 L110 95 L170 95 L170 60 L228 60" fill="none" stroke="#5B3DF5" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx="228" cy="60" r="9" fill="#D4FF3A" stroke="#111113" strokeWidth="3" />
+        <circle cx="250" cy="130" r="5" fill="#111113" stroke="#fff" strokeWidth="2" />
+        <circle cx="40" cy="50" r="5" fill="#111113" stroke="#fff" strokeWidth="2" />
+      </svg>
+      <div className="epicenter absolute" style={{ left: 'calc(23.3% - 13px)', top: 'calc(72% - 13px)' }} aria-hidden>
+        <span className="wave" />
+        <span className="wave" />
+        <span className="wave" />
+        <span className="core" />
+      </div>
     </div>
   )
 }
 
 export function Landing() {
   const { t } = useI18n()
+  const total = getAssemblyPoints().length
+  const districts = countDistricts()
 
   return (
     <>
-      {/* HERO */}
+      {/* ---------- HERO ---------- */}
       <section className="relative overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 -z-10 bg-grid-faint [background-size:34px_34px] opacity-60" />
-        <div className="pointer-events-none absolute -top-24 right-0 -z-10 h-72 w-72 rounded-full bg-spark/10 blur-3xl" />
-        <div className="container-px grid items-center gap-10 py-12 md:grid-cols-2 md:py-20">
-          <div className="animate-fade-up">
-            <span className="eyebrow">{t('landing.eyebrow')}</span>
-            <h1 className="mt-3 text-display-lg font-extrabold text-ink">
-              {t('landing.title.line1')}{' '}
-              <span className="text-navy-700">{t('landing.title.line2')}</span>
-            </h1>
-            <p className="mt-5 max-w-xl text-base leading-relaxed text-subink sm:text-lg">
-              {t('landing.subtitle')}
-            </p>
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-              <Link to="/map" className="btn btn-primary text-base">
-                <IconMap width={20} height={20} />
+        <div className="container-px pt-8 md:pt-14">
+          <div className="flex items-center justify-between gap-3">
+            <span className="cap">LAT 43.2380 / LNG 76.9450</span>
+            <span className="cap hidden sm:inline">{t('landing.cap.mode')}</span>
+            <span className="cap">{t('landing.cap.city')}</span>
+          </div>
+
+          <h1 className="mt-10 max-w-5xl font-display text-hero font-bold md:mt-14">
+            <SplitText text={t('landing.title.a')} />{' '}
+            <SplitText text={t('landing.title.b')} delay={0.25} className="text-accent" />
+          </h1>
+
+          <Reveal delay={0.45}>
+            <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted">{t('landing.subtitle')}</p>
+          </Reveal>
+
+          <Reveal delay={0.6} className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <Magnetic>
+              <Link to="/map" className="btn btn-primary min-h-[56px] w-full px-7 text-base sm:w-auto">
                 {t('landing.cta')}
+                <IconArrowRight width={20} height={20} />
               </Link>
-              <Link to="/checklist" className="btn btn-ghost text-base">
-                {t('landing.cta.secondary')}
-                <IconChevron width={18} height={18} />
+            </Magnetic>
+            <Magnetic>
+              <Link to="/drill" className="btn btn-ghost buzz-parent min-h-[56px] w-full px-7 text-base sm:w-auto">
+                <IconTimer className="buzz" width={20} height={20} />
+                {t('landing.cta.drill')}
               </Link>
-            </div>
-            <div className="mt-9 grid max-w-lg grid-cols-3 gap-5 border-t border-line pt-6">
-              <Fact valueKey="landing.fact1.value" labelKey="landing.fact1.label" />
-              <Fact valueKey="landing.fact2.value" labelKey="landing.fact2.label" />
-              <Fact valueKey="landing.fact3.value" labelKey="landing.fact3.label" />
-            </div>
+            </Magnetic>
+          </Reveal>
+        </div>
+
+        {/* Живая линия сейсмографа на всю ширину */}
+        <div className="relative mt-12 border-y border-line bg-surface/50">
+          <SeismoCanvas className="h-40 md:h-56" />
+        </div>
+
+        {/* Табло: только данные из приложения и из распоряжения */}
+        <div className="container-px">
+          <div className="grid grid-cols-3 divide-x divide-line">
+            <Stat value={total} label={t('landing.stat.points')} />
+            <Stat value={OFFICIAL_TOTAL} label={t('landing.stat.official')} />
+            <Stat value={districts} pad={2} label={t('landing.stat.districts')} />
           </div>
-          <div className="animate-scale-in">
-            <HeroVisual />
-          </div>
+          <p className="cap border-t border-line py-3 normal-case tracking-normal">{t('landing.stat.source')}</p>
         </div>
       </section>
 
-      {/* ПРОБЛЕМА */}
-      <section className="container-px py-6 md:py-10">
-        <div className="card overflow-hidden">
-          <div className="grid gap-6 p-8 md:grid-cols-[1.2fr_1fr] md:items-center md:p-10">
-            <div>
-              <h2 className="font-display text-2xl font-extrabold text-ink sm:text-3xl">
-                {t('landing.problem.title')}
-              </h2>
-              <p className="mt-4 max-w-xl leading-relaxed text-subink">{t('landing.problem.body')}</p>
-            </div>
-            <div className="rounded-3xl bg-navy-sheen p-6 text-white">
-              <div className="flex items-baseline gap-3">
-                <span className="font-display text-5xl font-extrabold">{t('landing.fact1.value')}</span>
-                <span className="text-sm text-white/80">{t('landing.fact1.label')}</span>
+      {/* ---------- МЧС (демо) ---------- */}
+      <section className="container-px py-10">
+        <Reveal>
+          <McsBanner />
+        </Reveal>
+      </section>
+
+      {/* ---------- КАК ЭТО РАБОТАЕТ ---------- */}
+      <section className="py-10 md:py-16">
+        <div className="container-px">
+          <span className="cap">{t('landing.how.cap')}</span>
+          <h2 className="mt-2 max-w-2xl font-display text-display font-bold">{t('landing.how.title')}</h2>
+        </div>
+        <RevealWave className="mt-6" />
+        <div className="container-px mt-6 grid gap-4 md:grid-cols-3">
+          <Reveal>
+            <Step n="01" title="landing.how.1.title" body="landing.how.1.body" />
+          </Reveal>
+          <Reveal delay={0.08}>
+            <Step n="02" title="landing.how.2.title" body="landing.how.2.body" />
+          </Reveal>
+          <Reveal delay={0.16}>
+            <Step n="03" title="landing.how.3.title" body="landing.how.3.body" />
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ---------- ИНСТРУМЕНТЫ: асимметричное бенто ---------- */}
+      <section className="container-px py-10 md:py-16">
+        <span className="cap">{t('landing.tools.cap')}</span>
+        <h2 className="mt-2 max-w-2xl font-display text-display font-bold">{t('landing.tools.title')}</h2>
+        <div className="mt-8 grid gap-4 md:grid-cols-4 md:grid-rows-[auto_auto_auto]">
+          <Reveal className="md:col-span-2 md:row-span-2">
+            <Tool to="/map" icon={<IconMap width={20} height={20} />} title="landing.f.map.title" body="landing.f.map.body" className="h-full min-h-[340px]">
+              <MapSketch />
+            </Tool>
+          </Reveal>
+          <Reveal className="md:col-span-2" delay={0.06}>
+            <Link to="/drill" className="lift buzz-parent flex h-full flex-col justify-between gap-6 rounded-card bg-acid p-6 text-ink">
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-[11px] font-bold uppercase tracking-[0.14em]">{t('landing.f.drill.title')}</span>
+                <IconTimer className="buzz" width={22} height={22} />
               </div>
-              <div className="mt-4 h-px w-full bg-white/15" />
-              <p className="mt-4 text-sm text-white/80">{t('app.tagline')}</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ТРИ ШАГА */}
-      <section className="container-px py-10 md:py-14">
-        <h2 className="text-center font-display text-2xl font-extrabold text-ink sm:text-3xl">
-          {t('landing.steps.title')}
-        </h2>
-        <div className="mt-8 grid gap-5 md:grid-cols-3">
-          <StepCard n={1} Icon={IconMap} titleKey="landing.step1.title" bodyKey="landing.step1.body" />
-          <StepCard n={2} Icon={IconRoute} titleKey="landing.step2.title" bodyKey="landing.step2.body" />
-          <StepCard n={3} Icon={IconUsers} titleKey="landing.step3.title" bodyKey="landing.step3.body" />
-        </div>
-      </section>
-
-      {/* ФИНАЛЬНЫЙ CTA */}
-      <section className="container-px pb-16 pt-2 md:pb-24">
-        <div className="relative overflow-hidden rounded-3xl bg-navy-sheen px-8 py-12 text-center text-white md:py-16">
-          <div className="pointer-events-none absolute inset-0 bg-grid-faint [background-size:30px_30px] opacity-20" />
-          <h2 className="relative font-display text-3xl font-extrabold sm:text-4xl">
-            {t('landing.cta2.title')}
-          </h2>
-          <p className="relative mx-auto mt-3 max-w-md text-white/85">{t('landing.cta2.body')}</p>
-          <div className="relative mt-8 flex justify-center">
-            <Link
-              to="/map"
-              className="btn bg-white text-navy-800 hover:bg-white/90 text-base"
-            >
-              <IconMap width={20} height={20} />
-              {t('landing.cta')}
+              <div className="flex items-baseline gap-2 font-mono font-semibold leading-none">
+                <span className="text-7xl md:text-8xl">60</span>
+                <span className="text-xl uppercase">{t('unit.sec')}</span>
+              </div>
+              <p className="max-w-sm text-[15px] font-medium">{t('landing.f.drill.body')}</p>
             </Link>
+          </Reveal>
+          <Reveal delay={0.1}>
+            <Tool to="/checklist" icon={<IconGauge width={20} height={20} />} title="landing.f.index.title" body="landing.f.index.body" className="h-full" />
+          </Reveal>
+          <Reveal delay={0.14}>
+            <Tool to="/family" icon={<IconUsers width={20} height={20} />} title="landing.f.family.title" body="landing.f.family.body" className="h-full" />
+          </Reveal>
+          <Reveal className="md:col-span-3" delay={0.06}>
+            <Tool to="/checklist" icon={<IconShare width={20} height={20} />} title="landing.f.share.title" body="landing.f.share.body" className="h-full" />
+          </Reveal>
+          <Reveal delay={0.1}>
+            <div className="card flex h-full flex-col justify-between gap-6 p-5">
+              <span className="grid h-10 w-10 place-items-center rounded-xl border border-line bg-paper">
+                <IconWifiOff width={20} height={20} />
+              </span>
+              <div>
+                <h3 className="font-display text-base font-semibold">{t('landing.f.offline.title')}</h3>
+                <p className="mt-1 text-sm text-muted">{t('landing.f.offline.body')}</p>
+                <InstallButton className="mt-4" />
+              </div>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ---------- ИСТОРИЯ ---------- */}
+      <section className="border-y border-line bg-surface py-12 md:py-16">
+        <div className="container-px">
+          <span className="cap">{t('landing.history.cap')}</span>
+          <h2 className="mt-2 font-display text-display font-bold">{t('landing.history.title')}</h2>
+          <div className="mt-8 grid gap-px overflow-hidden rounded-card border border-line bg-line md:grid-cols-3">
+            {(
+              [
+                ['1887', 'landing.history.1887'],
+                ['1911', 'landing.history.1911'],
+                ['2024', 'landing.history.2024'],
+              ] as const
+            ).map(([year, key]) => (
+              <div key={year} className="bg-surface p-6">
+                <Odometer value={year} className="text-6xl font-semibold tracking-tight" jitter={false} />
+                <p className="mt-3 text-[15px] leading-relaxed text-muted">{t(key)}</p>
+              </div>
+            ))}
+          </div>
+          <p className="cap mt-3">{t('landing.history.source')}</p>
+        </div>
+      </section>
+
+      {/* ---------- ФИНАЛ ---------- */}
+      <section className="container-px py-14 md:py-20">
+        <div className="relative overflow-hidden rounded-sheet bg-ink px-6 py-12 text-white md:px-12 md:py-16">
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 opacity-60">
+            <SeismoCanvas className="h-28" color="#3A3A40" accent="#D4FF3A" interactive={false} />
+          </div>
+          <div className="relative">
+            <h2 className="font-display text-display font-bold">{t('landing.final.title')}</h2>
+            <p className="mt-3 max-w-md text-lg text-white/75">{t('landing.final.body')}</p>
+            <div className="mt-8">
+              <Magnetic>
+                <Link to="/map" className="btn btn-acid min-h-[56px] px-7 text-base">
+                  {t('landing.cta')}
+                  <IconArrowRight width={20} height={20} />
+                </Link>
+              </Magnetic>
+            </div>
           </div>
         </div>
       </section>
