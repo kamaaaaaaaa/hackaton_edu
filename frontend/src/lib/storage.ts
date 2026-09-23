@@ -25,4 +25,7 @@ export const STORAGE_KEYS = {
   checklist: 'gkt.checklist.v1',
   lang: 'gkt.lang.v1',
   house: 'gkt.house.lastSelected.v1',
+  groupCode: 'gkt.family.groupCode.v1',
+  myMemberId: 'gkt.family.myMemberId.v1',
+  myToken: 'gkt.family.myToken.v1',
 } as const

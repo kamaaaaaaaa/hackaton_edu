@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
-import { useFamily } from '@/store/family'
+import { useFamilyGroup } from '@/store/familyGroup'
+import { useMeetingPoint } from '@/store/family'
 import { getAssemblyPoints, type AssemblyPoint, type FamilyStatus } from '@/api'
 import { useI18n, type TranslationKey } from '@/i18n'
 
@@ -30,12 +31,115 @@ function StatusPill({ status }: { status: FamilyStatus }) {
   )
 }
 
+/** Две карточки выбора, пока пользователь ещё не в группе: создать новую
+ *  семью или присоединиться по коду, который дал родственник. */
+function GroupOnboarding({
+  create,
+  join,
+  loading,
+  error,
+}: {
+  create: (name: string, phone: string) => Promise<void>
+  join: (code: string, name: string, phone: string) => Promise<void>
+  loading: boolean
+  error: string | null
+}) {
+  const { t } = useI18n()
+  const [createName, setCreateName] = useState('')
+  const [createPhone, setCreatePhone] = useState('')
+  const [joinCode, setJoinCode] = useState('')
+  const [joinName, setJoinName] = useState('')
+  const [joinPhone, setJoinPhone] = useState('')
+  const [lastAction, setLastAction] = useState<'create' | 'join' | null>(null)
+
+  const submitCreate = (e: FormEvent) => {
+    e.preventDefault()
+    setLastAction('create')
+    create(createName, createPhone).catch(() => undefined)
+  }
+
+  const submitJoin = (e: FormEvent) => {
+    e.preventDefault()
+    setLastAction('join')
+    join(joinCode, joinName, joinPhone).catch(() => undefined)
+  }
+
+  return (
+    <div className="mt-6 grid gap-6 md:grid-cols-2">
+      <form onSubmit={submitCreate} className="card p-5">
+        <p className="eyebrow">{t('family.group.createTitle')}</p>
+        <p className="mt-1 text-sm text-subink">{t('family.group.createBody')}</p>
+        <div className="mt-3 space-y-2.5">
+          <input
+            className="field"
+            value={createName}
+            onChange={(e) => setCreateName(e.target.value)}
+            placeholder={t('family.group.yourNamePlaceholder')}
+            aria-label={t('family.group.yourName')}
+            required
+          />
+          <input
+            className="field"
+            value={createPhone}
+            onChange={(e) => setCreatePhone(e.target.value)}
+            placeholder={t('family.add.phonePlaceholder')}
+            aria-label={t('family.add.phone')}
+            inputMode="tel"
+          />
+        </div>
+        {lastAction === 'create' && error && (
+          <p className="mt-2 text-sm text-risk-high">{error}</p>
+        )}
+        <button type="submit" className="btn btn-primary mt-3 w-full" disabled={loading}>
+          {loading && lastAction === 'create' ? t('family.group.creating') : t('family.group.create')}
+        </button>
+      </form>
+
+      <form onSubmit={submitJoin} className="card p-5">
+        <p className="eyebrow">{t('family.group.joinTitle')}</p>
+        <p className="mt-1 text-sm text-subink">{t('family.group.joinBody')}</p>
+        <div className="mt-3 space-y-2.5">
+          <input
+            className="field"
+            value={joinCode}
+            onChange={(e) => setJoinCode(e.target.value)}
+            placeholder={t('family.group.codePlaceholder')}
+            aria-label={t('family.group.code')}
+            required
+          />
+          <input
+            className="field"
+            value={joinName}
+            onChange={(e) => setJoinName(e.target.value)}
+            placeholder={t('family.group.yourNamePlaceholder')}
+            aria-label={t('family.group.yourName')}
+            required
+          />
+          <input
+            className="field"
+            value={joinPhone}
+            onChange={(e) => setJoinPhone(e.target.value)}
+            placeholder={t('family.add.phonePlaceholder')}
+            aria-label={t('family.add.phone')}
+            inputMode="tel"
+          />
+        </div>
+        {lastAction === 'join' && error && <p className="mt-2 text-sm text-risk-high">{error}</p>}
+        <button type="submit" className="btn btn-primary mt-3 w-full" disabled={loading}>
+          {loading && lastAction === 'join' ? t('family.group.joining') : t('family.group.join')}
+        </button>
+      </form>
+    </div>
+  )
+}
+
 export function FamilyCircle() {
   const { t, lang } = useI18n()
-  const { members, add, remove, setStatus, meetingPointId, setMeetingPoint } = useFamily()
+  const { hasGroup, groupCode, members, loading, error, create, join, refresh, setMyStatus, leaveGroup } =
+    useFamilyGroup()
+  const { meetingPointId, setMeetingPoint } = useMeetingPoint()
   const [points, setPoints] = useState<AssemblyPoint[]>([])
-  const [name, setName] = useState('')
-  const [phone, setPhone] = useState('')
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     let alive = true
@@ -47,19 +151,18 @@ export function FamilyCircle() {
     }
   }, [])
 
+  useEffect(() => {
+    if (!copied) return
+    const id = setTimeout(() => setCopied(false), 1500)
+    return () => clearTimeout(id)
+  }, [copied])
+
   const meetingPoint = useMemo(
     () => points.find((p) => p.id === meetingPointId) ?? null,
     [points, meetingPointId],
   )
-  const self = members.find((m) => m.isSelf) ?? members[0]
+  const self = members.find((m) => m.isSelf)
   const others = members.filter((m) => !m.isSelf)
-
-  const submit = (e: FormEvent) => {
-    e.preventDefault()
-    add(name, phone)
-    setName('')
-    setPhone('')
-  }
 
   const fmtTime = (iso: string) => {
     try {
@@ -72,6 +175,14 @@ export function FamilyCircle() {
     }
   }
 
+  const copyCode = () => {
+    if (!groupCode) return
+    navigator.clipboard
+      .writeText(groupCode)
+      .then(() => setCopied(true))
+      .catch(() => undefined)
+  }
+
   return (
     <div className="container-px py-6 md:py-8">
       <header className="max-w-2xl">
@@ -81,132 +192,146 @@ export function FamilyCircle() {
         <p className="mt-2 text-subink">{t('family.subtitle')}</p>
       </header>
 
-      <div className="mt-6 grid items-start gap-6 lg:grid-cols-[1fr_1.15fr]">
-        {/* Левая колонка */}
-        <div className="space-y-4">
-          {/* Я в порядке */}
-          <div className="card overflow-hidden">
-            <div className="bg-navy-sheen p-5 text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/70">
-                    {t('family.you')}
-                  </p>
-                  <p className="mt-1 font-display text-lg font-bold">
-                    {self.name?.trim() ? self.name : t('family.you')}
-                  </p>
-                </div>
-                <StatusPill status={self.status} />
-              </div>
+      {!hasGroup && (
+        <GroupOnboarding create={create} join={join} loading={loading} error={error} />
+      )}
+
+      {hasGroup && (
+        <>
+          {/* Код приглашения */}
+          <div className="card mt-6 p-5">
+            <p className="eyebrow">{t('family.group.inviteTitle')}</p>
+            <p className="mt-1 text-sm text-subink">{t('family.group.inviteHint')}</p>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <span className="rounded-2xl bg-mist px-4 py-2 font-mono text-lg font-bold tracking-[0.15em] text-ink">
+                {groupCode}
+              </span>
               <button
                 type="button"
-                onClick={() => setStatus(self.id, 'safe')}
-                className="btn mt-4 w-full bg-white text-navy-800 hover:bg-white/90"
+                onClick={copyCode}
+                className="rounded-full bg-navy-sheen px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
               >
-                {t('family.imOk')}
+                {copied ? t('family.group.copied') : t('family.group.copy')}
               </button>
             </div>
           </div>
 
-          {/* Точка встречи */}
-          <div className="card p-5">
-            <p className="eyebrow">{t('family.meeting.title')}</p>
-            <label className="mt-3 block">
-              <span className="sr-only">{t('family.meeting.choose')}</span>
-              <select
-                className="field"
-                value={meetingPointId ?? ''}
-                onChange={(e) => setMeetingPoint(e.target.value || null)}
-              >
-                <option value="">{t('family.meeting.none')}</option>
-                {points.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                    {p.district ? ` — ${p.district}` : ''}
-                  </option>
-                ))}
-              </select>
-            </label>
-            {meetingPoint && (
-              <div className="mt-3 rounded-2xl bg-mist px-4 py-3 text-sm">
-                <div className="font-semibold text-ink">{meetingPoint.name}</div>
-                {meetingPoint.address && <div className="text-subink">{meetingPoint.address}</div>}
+          <div className="mt-6 grid items-start gap-6 lg:grid-cols-[1fr_1.15fr]">
+            {/* Левая колонка */}
+            <div className="space-y-4">
+              {/* Я в порядке */}
+              <div className="card overflow-hidden">
+                <div className="bg-navy-sheen p-5 text-white">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/70">
+                        {t('family.you')}
+                      </p>
+                      <p className="mt-1 font-display text-lg font-bold">
+                        {self?.name?.trim() ? self.name : t('family.you')}
+                      </p>
+                    </div>
+                    {self && <StatusPill status={self.status} />}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setMyStatus('safe')}
+                    disabled={!self}
+                    className="btn mt-4 w-full bg-white text-navy-800 hover:bg-white/90 disabled:opacity-60"
+                  >
+                    {t('family.imOk')}
+                  </button>
+                </div>
               </div>
-            )}
-          </div>
 
-          {/* Добавить */}
-          <form onSubmit={submit} className="card p-5">
-            <p className="eyebrow">{t('family.add.title')}</p>
-            <div className="mt-3 space-y-2.5">
-              <input
-                className="field"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder={t('family.add.namePlaceholder')}
-                aria-label={t('family.add.name')}
-                required
-              />
-              <input
-                className="field"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder={t('family.add.phonePlaceholder')}
-                aria-label={t('family.add.phone')}
-                inputMode="tel"
-              />
+              {/* Точка встречи */}
+              <div className="card p-5">
+                <p className="eyebrow">{t('family.meeting.title')}</p>
+                <label className="mt-3 block">
+                  <span className="sr-only">{t('family.meeting.choose')}</span>
+                  <select
+                    className="field"
+                    value={meetingPointId ?? ''}
+                    onChange={(e) => setMeetingPoint(e.target.value || null)}
+                  >
+                    <option value="">{t('family.meeting.none')}</option>
+                    {points.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                        {p.district ? ` — ${p.district}` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                {meetingPoint && (
+                  <div className="mt-3 rounded-2xl bg-mist px-4 py-3 text-sm">
+                    <div className="font-semibold text-ink">{meetingPoint.name}</div>
+                    {meetingPoint.address && (
+                      <div className="text-subink">{meetingPoint.address}</div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={leaveGroup}
+                className="px-1 text-xs font-semibold text-subink underline decoration-dotted transition hover:text-risk-high"
+              >
+                {t('family.group.leave')}
+              </button>
             </div>
-            <button type="submit" className="btn btn-primary mt-3 w-full">
-              {t('action.add')}
-            </button>
-          </form>
-        </div>
 
-        {/* Правая колонка — список */}
-        <div className="space-y-3">
-          {others.length === 0 && (
-            <div className="card p-6 text-sm text-subink">{t('family.empty')}</div>
-          )}
-          {others.map((m) => (
-            <div key={m.id} className="card p-4">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="truncate font-semibold text-ink">{m.name}</div>
-                  {m.phone && <div className="text-xs text-subink">{m.phone}</div>}
-                  <div className="mt-0.5 text-[11px] text-subink/70">
-                    {t('family.updated')} {fmtTime(m.updatedAt)}
+            {/* Правая колонка — список */}
+            <div className="space-y-3">
+              {loading && members.length === 0 && (
+                <div className="card p-6 text-sm text-subink">{t('family.group.loading')}</div>
+              )}
+
+              {error && members.length === 0 && (
+                <div className="card p-6 text-sm text-risk-high">
+                  <p>{error}</p>
+                  <button
+                    type="button"
+                    onClick={() => refresh()}
+                    className="mt-2 rounded-full bg-mist px-3 py-1.5 text-xs font-semibold text-ink transition hover:bg-line"
+                  >
+                    {t('misc.retry')}
+                  </button>
+                </div>
+              )}
+
+              {!loading && !error && others.length === 0 && members.length > 0 && (
+                <div className="card p-6 text-sm text-subink">{t('family.group.emptyOthers')}</div>
+              )}
+
+              {error && members.length > 0 && (
+                <div className="flex items-center justify-between rounded-2xl bg-risk-high/10 px-4 py-2 text-xs text-risk-high">
+                  <span>{error}</span>
+                  <button type="button" onClick={() => refresh()} className="font-semibold underline">
+                    {t('misc.retry')}
+                  </button>
+                </div>
+              )}
+
+              {others.map((m) => (
+                <div key={m.id} className="card p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="truncate font-semibold text-ink">{m.name}</div>
+                      {m.phone && <div className="text-xs text-subink">{m.phone}</div>}
+                      <div className="mt-0.5 text-[11px] text-subink/70">
+                        {t('family.updated')} {fmtTime(m.updatedAt)}
+                      </div>
+                    </div>
+                    <StatusPill status={m.status} />
                   </div>
                 </div>
-                <StatusPill status={m.status} />
-              </div>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => setStatus(m.id, 'safe')}
-                  className="rounded-full bg-risk-low/10 px-3 py-1.5 text-xs font-semibold text-risk-low transition hover:bg-risk-low/20"
-                >
-                  {t('family.mark.safe')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setStatus(m.id, 'no_contact')}
-                  className="rounded-full bg-risk-high/10 px-3 py-1.5 text-xs font-semibold text-risk-high transition hover:bg-risk-high/20"
-                >
-                  {t('family.mark.no_contact')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => remove(m.id)}
-                  className="ml-auto rounded-full px-3 py-1.5 text-xs font-semibold text-subink transition hover:text-risk-high"
-                >
-                  {t('action.remove')}
-                </button>
-              </div>
+              ))}
             </div>
-          ))}
-          <p className="px-1 pt-1 text-[11px] text-subink/80">{t('family.stored')}</p>
-        </div>
-      </div>
+          </div>
+        </>
+      )}
     </div>
   )
 }
