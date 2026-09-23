@@ -21,7 +21,8 @@ export function Logo({ size = 30, wordmark = true }: { size?: number; wordmark?:
     <span className="inline-flex select-none items-center gap-2.5">
       <LogoMark size={size} />
       {wordmark && (
-        <span className="font-display text-[15px] font-semibold leading-none tracking-[-0.02em] text-ink">
+        // Где шапке тесно (телефоны до 380 px и планшеты, где уже видно меню) — только знак
+        <span className="font-display text-[15px] font-semibold leading-none tracking-[-0.02em] text-ink max-[379px]:hidden md:max-lg:hidden">
           Готов&nbsp;к&nbsp;толчку
         </span>
       )}

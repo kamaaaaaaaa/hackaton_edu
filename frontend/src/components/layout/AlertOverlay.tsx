@@ -4,8 +4,9 @@ import { AnimatePresence, m } from 'framer-motion'
 import { useAlert } from '@/store/alert'
 import { usePlan } from '@/store/plan'
 import { useI18n, type TranslationKey } from '@/i18n'
-import { formatClock } from '@/lib/format'
+import { formatClock, formatMinutes } from '@/lib/format'
 import { IconRoute } from '@/components/ui/icons'
+import { FitText } from '@/components/ui/FitText'
 
 const RULES: TranslationKey[] = ['alert.rule1', 'alert.rule2', 'alert.rule3']
 
@@ -78,14 +79,14 @@ export function AlertOverlay() {
               <span className="font-mono text-[11px] font-bold uppercase tracking-[0.14em]">{t('alert.cap')}</span>
             </div>
 
-            {/* Размер заголовка считаем от ширины экрана: «ЗЕМЛЕТРЯСЕНИЕ» (13 букв
-                широкого Unbounded) должно помещаться и на 320 px, и в колонке десктопа */}
-            <h1
+            {/* «ЗЕМЛЕТРЯСЕНИЕ» — 13 букв широкого Unbounded: всегда одной строкой,
+                шрифт сам уменьшается под ширину экрана (FitText) */}
+            <FitText
               id="alert-title"
-              className="mt-4 break-words font-display text-[clamp(1.45rem,7.6vw,2.75rem)] font-extrabold uppercase leading-[0.98] tracking-[-0.02em]"
+              className="mt-4 font-display text-[clamp(20px,7vw,40px)] font-extrabold uppercase leading-none"
             >
               {t('alert.title')}
-            </h1>
+            </FitText>
             <p className="mt-2.5 text-lg font-semibold leading-snug sm:text-xl">{t('alert.instruction')}</p>
 
             <div className="mt-5 rounded-sheet bg-black/25 p-4">
@@ -114,7 +115,11 @@ export function AlertOverlay() {
               >
                 <IconRoute width={19} height={19} />
                 {t('alert.routeCta')}
-                {plan && <span className="font-mono text-sm text-muted">· {formatClock(plan.timeSec)}</span>}
+                {plan && (
+                  <span className="font-mono text-sm text-muted">
+                    · {formatMinutes(plan.timeSec)} {t('unit.min')}
+                  </span>
+                )}
               </button>
               {!plan && (
                 <p className="rounded-2xl bg-black/25 px-4 py-2.5 text-sm font-medium">{t('alert.noPlan')}</p>
