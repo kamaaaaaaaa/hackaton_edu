@@ -32,6 +32,8 @@ services:
     envVars:
       - key: VITE_USE_MOCKS
         value: "true"
+      - key: VITE_API_URL
+        value: https://hackathon-base.onrender.com/api
       - key: VITE_TOMTOM_KEY
         sync: false
     routes:
