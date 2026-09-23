@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { getAnalyticsSummary, type AnalyticsSummary } from '@/api/analytics'
 import { useI18n } from '@/i18n'
+import { Odometer } from '@/components/ui/Odometer'
+import { Spinner } from '@/components/ui/motion'
 
 const ADMIN_URL = 'https://hackathon-base.onrender.com/admin/'
 
@@ -15,22 +17,15 @@ export function DevPanel() {
     setLoading(true)
     setError(false)
     getAnalyticsSummary()
-      .then((res) => {
-        if (alive) setSummary(res)
-      })
-      .catch(() => {
-        if (alive) setError(true)
-      })
-      .finally(() => {
-        if (alive) setLoading(false)
-      })
+      .then((res) => alive && setSummary(res))
+      .catch(() => alive && setError(true))
+      .finally(() => alive && setLoading(false))
     return () => {
       alive = false
     }
   }, [])
 
-  const byType = summary ? Object.entries(summary.byEventType) : []
-
+  const byType = summary ? Object.entries(summary.byEventType).sort((a, b) => b[1] - a[1]) : []
   const fmtDate = (iso: string) => {
     try {
       return new Date(iso).toLocaleString(lang === 'kk' ? 'kk-KZ' : 'ru-RU')
@@ -40,66 +35,49 @@ export function DevPanel() {
   }
 
   return (
-    <div className="container-px py-6 md:py-8">
-      <header className="max-w-2xl">
-        <h1 className="font-display text-2xl font-extrabold text-ink sm:text-3xl">
-          {t('dev.title')}
-        </h1>
-        <p className="mt-2 text-subink">{t('dev.subtitle')}</p>
-      </header>
+    <div className="container-px py-8 md:py-12">
+      <span className="cap">DEV · ANALYTICS</span>
+      <h1 className="mt-2 font-display text-display font-bold">{t('dev.title')}</h1>
+      <p className="mt-2 text-muted">{t('dev.subtitle')}</p>
 
-      <div className="card mt-6 p-5">
-        <a
-          href={ADMIN_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn btn-primary w-full sm:w-auto"
-        >
-          {t('dev.adminCta')}
-        </a>
-      </div>
+      <a href={ADMIN_URL} target="_blank" rel="noopener noreferrer" className="btn btn-ink mt-6">
+        {t('dev.adminCta')}
+      </a>
 
-      {loading && <div className="card mt-4 p-6 text-sm text-subink">{t('dev.loading')}</div>}
-
-      {!loading && error && (
-        <div className="card mt-4 p-6 text-sm text-risk-high">{t('dev.error')}</div>
+      {loading && (
+        <div className="card mt-6 flex items-center gap-2 p-5 text-muted">
+          <Spinner /> {t('dev.loading')}
+        </div>
       )}
+      {!loading && error && <div className="card mt-6 p-5 font-medium text-signal-ink">{t('dev.error')}</div>}
 
       {!loading && !error && summary && (
         <>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <div className="mt-6 grid gap-4 sm:grid-cols-2">
             <div className="card p-5">
-              <p className="eyebrow">{t('dev.stats.total')}</p>
-              <p className="mt-1 font-display text-3xl font-extrabold text-navy-700">
-                {summary.totalEvents}
-              </p>
+              <div className="cap">{t('dev.stats.total')}</div>
+              <Odometer value={summary.totalEvents} className="mt-2 text-5xl font-semibold" />
             </div>
             <div className="card p-5">
-              <p className="eyebrow">{t('dev.stats.last24h')}</p>
-              <p className="mt-1 font-display text-3xl font-extrabold text-navy-700">
-                {summary.last24h}
-              </p>
+              <div className="cap">{t('dev.stats.last24h')}</div>
+              <Odometer value={summary.last24h} className="mt-2 text-5xl font-semibold" />
             </div>
           </div>
-
           <div className="card mt-4 p-5">
-            <p className="eyebrow">{t('dev.stats.byType')}</p>
+            <div className="cap">{t('dev.stats.byType')}</div>
             {byType.length === 0 ? (
-              <p className="mt-2 text-sm text-subink">{t('dev.noEvents')}</p>
+              <p className="mt-2 text-sm text-muted">{t('dev.noEvents')}</p>
             ) : (
-              <ul className="mt-3 space-y-1.5">
+              <ul className="mt-3 divide-y divide-line">
                 {byType.map(([event, count]) => (
-                  <li
-                    key={event}
-                    className="flex items-center justify-between rounded-2xl bg-mist px-4 py-2 text-sm"
-                  >
-                    <span className="font-medium text-ink">{event}</span>
-                    <span className="font-semibold text-navy-700">{count}</span>
+                  <li key={event} className="flex items-center justify-between py-2 text-sm">
+                    <span className="font-mono">{event}</span>
+                    <span className="font-mono font-semibold">{count}</span>
                   </li>
                 ))}
               </ul>
             )}
-            <p className="mt-3 text-[11px] text-subink/80">
+            <p className="cap mt-3">
               {t('dev.generatedAt')} {fmtDate(summary.generatedAt)}
             </p>
           </div>

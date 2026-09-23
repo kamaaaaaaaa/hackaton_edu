@@ -10,6 +10,8 @@ import { trackEvent } from '@/api/analytics'
 
 interface AlertValue {
   active: boolean
+  /** Момент начала тревоги (ms) — для таймера «с момента оповещения». */
+  startedAt: number | null
   /** Поднять тревогу (в демо — вручную; в проде — сигнал от МЧС/сенсоров). */
   trigger: () => void
   dismiss: () => void
@@ -18,13 +20,16 @@ interface AlertValue {
 const AlertContext = createContext<AlertValue | null>(null)
 
 export function AlertProvider({ children }: { children: ReactNode }) {
-  const [active, setActive] = useState(false)
+  const [startedAt, setStartedAt] = useState<number | null>(null)
   const trigger = useCallback(() => {
-    setActive(true)
+    setStartedAt(Date.now())
     trackEvent('alert_triggered')
   }, [])
-  const dismiss = useCallback(() => setActive(false), [])
-  const value = useMemo(() => ({ active, trigger, dismiss }), [active, trigger, dismiss])
+  const dismiss = useCallback(() => setStartedAt(null), [])
+  const value = useMemo(
+    () => ({ active: startedAt !== null, startedAt, trigger, dismiss }),
+    [startedAt, trigger, dismiss],
+  )
   return <AlertContext.Provider value={value}>{children}</AlertContext.Provider>
 }
 

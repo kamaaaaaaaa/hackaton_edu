@@ -2,6 +2,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -12,12 +13,11 @@ import { readJSON, writeJSON, STORAGE_KEYS } from '@/lib/storage'
 
 export type Lang = 'ru' | 'kk'
 
-const dictionaries: Record<Lang, Record<TranslationKey, string>> = { ru, kk }
+const dictionaries: Record<Lang, Partial<Record<TranslationKey, string>>> = { ru, kk }
 
 interface I18nValue {
   lang: Lang
   setLang: (lang: Lang) => void
-  toggle: () => void
   t: (key: TranslationKey) => string
 }
 
@@ -28,27 +28,19 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     readJSON<Lang>(STORAGE_KEYS.lang, 'ru') === 'kk' ? 'kk' : 'ru',
   )
 
+  useEffect(() => {
+    document.documentElement.lang = lang
+  }, [lang])
+
   const setLang = useCallback((next: Lang) => {
     setLangState(next)
     writeJSON(STORAGE_KEYS.lang, next)
-    try {
-      document.documentElement.lang = next
-    } catch {
-      /* noop */
-    }
   }, [])
 
-  const toggle = useCallback(
-    () => setLang(lang === 'ru' ? 'kk' : 'ru'),
-    [lang, setLang],
-  )
+  // Казахский — заготовка: чего нет в kk, показываем по-русски.
+  const t = useCallback((key: TranslationKey) => dictionaries[lang][key] ?? ru[key], [lang])
 
-  const t = useCallback(
-    (key: TranslationKey) => dictionaries[lang][key] ?? ru[key] ?? key,
-    [lang],
-  )
-
-  const value = useMemo(() => ({ lang, setLang, toggle, t }), [lang, setLang, toggle, t])
+  const value = useMemo(() => ({ lang, setLang, t }), [lang, setLang, t])
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>
 }

@@ -29,4 +29,8 @@ export const STORAGE_KEYS = {
   myMemberId: 'gkt.family.myMemberId.v1',
   myToken: 'gkt.family.myToken.v1',
   authToken: 'gkt.auth.token.v1',
+  plan: 'gkt.plan.v1',
+  /** Семья в демо-режиме (сервер недоступен) — только на этом устройстве. */
+  familyLocal: 'gkt.family.local.v1',
+  drillBest: 'gkt.drill.best.v1',
 } as const

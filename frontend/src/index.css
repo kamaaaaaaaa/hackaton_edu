@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================================
+   «Готов к толчку» · визуальный язык «сейсмограф»
+   Токены цветов/шрифтов — в tailwind.config.js. Здесь — база,
+   переиспользуемые классы и оформление карты.
+   ============================================================ */
+
 @layer base {
   :root {
     color-scheme: light;
@@ -9,25 +15,38 @@
 
   html {
     -webkit-text-size-adjust: 100%;
-    scroll-behavior: smooth;
   }
 
   body {
-    @apply bg-cloud text-ink font-sans antialiased;
+    @apply bg-paper font-sans text-ink antialiased;
     min-height: 100dvh;
   }
 
-  h1, h2, h3, h4 {
-    @apply font-display tracking-tight;
+  h1,
+  h2,
+  h3 {
+    @apply font-display;
+  }
+
+  /* Цифры — главный герой: всегда моноширинные табличные */
+  .font-mono {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Выделение — кислотный лайм только с чёрным текстом */
+  ::selection {
+    background: #d4ff3a;
+    color: #111113;
+  }
+
+  :focus-visible {
+    outline: 2px solid #5b3df5;
+    outline-offset: 2px;
   }
 
   button,
   a {
     -webkit-tap-highlight-color: transparent;
-  }
-
-  ::selection {
-    background: rgba(59, 107, 255, 0.18);
   }
 }
 
@@ -36,129 +55,285 @@
     @apply mx-auto w-full max-w-6xl px-4 sm:px-6;
   }
 
-  .card {
-    @apply rounded-3xl border border-line bg-white shadow-soft;
+  /* Миллиметровка: крупная сетка 48px + мелкая 8px */
+  .bg-mm {
+    background-color: #f4f3ee;
+    background-image:
+      linear-gradient(rgba(17, 17, 19, 0.055) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(17, 17, 19, 0.055) 1px, transparent 1px),
+      linear-gradient(rgba(17, 17, 19, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(17, 17, 19, 0.025) 1px, transparent 1px);
+    background-size:
+      48px 48px,
+      48px 48px,
+      8px 8px,
+      8px 8px;
+    background-position: -1px -1px;
   }
 
-  /* Дозированный glassmorphism — только на «плавающих» панелях. */
+  .card {
+    @apply rounded-card border border-line bg-surface shadow-card;
+  }
+
+  /* Стекло — только на плавающих панелях поверх карты */
   .glass {
-    @apply rounded-3xl border border-white/70 bg-white/75 shadow-glass;
-    backdrop-filter: blur(12px);
+    @apply rounded-sheet border border-white/80 shadow-glass;
+    background: rgba(255, 255, 255, 0.74);
+    backdrop-filter: blur(16px) saturate(1.5);
+    -webkit-backdrop-filter: blur(16px) saturate(1.5);
+  }
+
+  /* Техническая подпись прибора: моно, капс, разрядка */
+  .cap {
+    @apply font-mono text-cap uppercase text-muted;
   }
 
   .btn {
-    @apply inline-flex select-none items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold transition
-           focus:outline-none focus-visible:ring-2 focus-visible:ring-spark/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white
-           disabled:pointer-events-none disabled:opacity-50;
+    @apply relative inline-flex min-h-[48px] select-none items-center justify-center gap-2 rounded-full px-6 text-[15px] font-semibold
+           transition-[background-color,color,box-shadow,opacity] duration-200
+           disabled:pointer-events-none disabled:opacity-45;
   }
   .btn-primary {
-    @apply bg-navy-700 text-white hover:bg-navy-600 active:bg-navy-800;
+    @apply bg-accent text-white shadow-accent hover:bg-accent-hover active:bg-accent-press;
+  }
+  .btn-ink {
+    @apply bg-ink text-white hover:bg-black;
+  }
+  .btn-acid {
+    @apply bg-acid text-ink hover:bg-acid-deep;
   }
   .btn-ghost {
-    @apply border border-line bg-white text-navy-700 hover:border-navy-300 hover:bg-mist;
+    @apply border border-line bg-surface text-ink hover:border-ink/25;
   }
-  .btn-danger {
-    @apply bg-risk-high text-white hover:brightness-110 active:brightness-95;
+  /* Белый на #FF3B1F — 3.56:1 (мало для мелкого текста), чёрный — 5.3:1 */
+  .btn-signal {
+    @apply bg-signal text-ink hover:brightness-105;
   }
-
-  .chip {
-    @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-white px-3 py-1 text-xs font-medium text-subink;
+  .btn-sm {
+    @apply min-h-[40px] px-4 text-sm;
   }
 
   .field {
-    @apply w-full rounded-2xl border border-line bg-white px-4 py-3 text-base text-ink placeholder:text-subink/70
-           focus:border-navy-400 focus:outline-none focus:ring-2 focus:ring-spark/25;
+    @apply w-full rounded-2xl border border-line bg-surface px-4 py-3.5 text-base text-ink placeholder:text-faint
+           transition-[border-color,box-shadow] focus:border-accent focus:outline-none focus:ring-4 focus:ring-accent/15;
   }
 
-  .eyebrow {
-    @apply text-xs font-semibold uppercase tracking-[0.2em] text-navy-500;
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-muted;
+  }
+
+  /* Лайм-бейдж: только заливка + чёрный текст */
+  .badge-acid {
+    @apply inline-flex items-center gap-1.5 rounded-full bg-acid px-2.5 py-1 font-mono text-[11px] font-bold uppercase tracking-[0.08em] text-ink;
+  }
+
+  /* Поднятие карточки: тень через псевдоэлемент + opacity (без перерисовки) */
+  .lift {
+    @apply relative transition-transform duration-300 ease-out;
+  }
+  .lift::after {
+    content: '';
+    @apply pointer-events-none absolute inset-0 rounded-[inherit] shadow-lift opacity-0 transition-opacity duration-300;
+  }
+  .lift:hover {
+    transform: translateY(-3px);
+  }
+  .lift:hover::after {
+    opacity: 1;
+  }
+
+  /* Микро-вибрация иконки при наведении на родителя */
+  .buzz-parent:hover .buzz {
+    @apply animate-buzz;
   }
 }
 
-/* ---------- Leaflet: light minimalist look ---------- */
-.leaflet-container {
+/* ---------------- Lenis (плавный скролл) ---------------- */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* ---------------- Тревога: встряска всего интерфейса ---------------- */
+.quake {
+  @apply animate-shake;
+}
+
+/* ---------------- MapLibre ---------------- */
+.maplibregl-map {
   @apply font-sans;
-  background: #e9edf4;
 }
-/* Приглушаем базовые тайлы OSM под светлый минимализм (в духе Positron). */
-.leaflet-tile-pane {
-  filter: grayscale(0.9) brightness(1.06) contrast(0.9);
+.city-map .maplibregl-ctrl-bottom-left {
+  bottom: var(--map-inset-bottom, 0px);
+  transition: bottom 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.leaflet-container a {
-  color: theme('colors.navy.600');
+.maplibregl-ctrl-attrib {
+  @apply font-mono text-[10px];
+  background: rgba(244, 243, 238, 0.85) !important;
 }
-.leaflet-popup-content-wrapper {
-  border-radius: 14px;
-  box-shadow: 0 14px 34px -16px rgba(11, 20, 55, 0.32);
-  border: 1px solid theme('colors.line');
+.maplibregl-ctrl-group {
+  @apply overflow-hidden rounded-xl border border-line shadow-card !important;
 }
-.leaflet-popup-content {
-  margin: 12px 14px;
-  font-size: 13px;
-  line-height: 1.35;
+.maplibregl-popup-content {
+  @apply rounded-2xl border border-line p-0 shadow-lift !important;
 }
-.leaflet-bar a {
-  color: theme('colors.navy.700');
-  border-color: theme('colors.line');
+.maplibregl-popup-tip {
+  display: none;
 }
 
-/* House marker: pulsing spark dot */
-.house-marker .dot {
-  width: 18px;
-  height: 18px;
-  border-radius: 9999px;
-  background: theme('colors.spark');
-  border: 3px solid #fff;
-  box-shadow: 0 2px 10px rgba(11, 20, 55, 0.45);
+/* Дом пользователя — эпицентр с концентрическими кольцами */
+.epicenter {
+  position: relative;
+  width: 26px;
+  height: 26px;
 }
-.house-marker .ring {
+.epicenter .core {
   position: absolute;
-  left: 9px;
-  top: 9px;
-  width: 18px;
-  height: 18px;
-  margin: -9px 0 0 -9px;
+  inset: 6px;
   border-radius: 9999px;
-  background: theme('colors.spark');
-  animation: house-ping 1.9s cubic-bezier(0, 0, 0.2, 1) infinite;
+  background: #5b3df5;
+  box-shadow:
+    0 0 0 3px #fff,
+    0 4px 12px rgba(91, 61, 245, 0.55);
 }
-@keyframes house-ping {
-  0% {
-    transform: scale(1);
-    opacity: 0.5;
-  }
-  80%,
-  100% {
-    transform: scale(3.6);
-    opacity: 0;
-  }
+.epicenter .wave {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 2px solid #5b3df5;
+  @apply animate-ring;
+}
+.epicenter .wave:nth-child(2) {
+  animation-delay: 0.8s;
+}
+.epicenter .wave:nth-child(3) {
+  animation-delay: 1.6s;
 }
 
-/* Assembly-point markers */
-.ap-marker {
-  width: 14px;
-  height: 14px;
+/* Пункты приёма населения — появляются каскадом.
+   Внешний .pt-root двигает MapLibre (transform), анимируем только .pt */
+.pt-root {
+  cursor: pointer;
+}
+.pt {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
   border-radius: 9999px;
   background: #fff;
-  border: 3px solid theme('colors.navy.600');
-  box-shadow: 0 1px 5px rgba(11, 20, 55, 0.3);
+  color: #111113;
+  border: 2px solid #111113;
+  box-shadow: 0 2px 6px rgba(17, 17, 19, 0.3);
+  transition:
+    width 0.2s,
+    height 0.2s;
+  @apply animate-marker-in;
+  animation-delay: var(--d, 0ms);
 }
-.ap-marker.nearest {
-  width: 20px;
-  height: 20px;
-  border-color: theme('colors.risk.low');
-  box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.18);
+.pt svg {
+  width: 15px;
+  height: 15px;
+}
+.pt-root:hover .pt {
+  background: #f4f3ee;
+}
+.pt.is-candidate {
+  border-color: #5b3df5;
+  color: #5b3df5;
+}
+.pt.is-fastest {
+  width: 38px;
+  height: 38px;
+  background: #d4ff3a;
+  border: 3px solid #111113;
+  box-shadow:
+    0 0 0 5px rgba(212, 255, 58, 0.5),
+    0 6px 16px rgba(17, 17, 19, 0.3);
+}
+.pt.is-fastest svg {
+  width: 19px;
+  height: 19px;
+}
+.pt.is-meeting {
+  width: 26px;
+  height: 26px;
+  background: #5b3df5;
+  border: 3px solid #fff;
+}
+/* Город целиком — пункты точками, без иконок */
+[data-zoom='far'] .pt:not(.is-fastest):not(.is-meeting) {
+  width: 14px;
+  height: 14px;
+  background: #111113;
+  border: 2.5px solid #fff;
+}
+[data-zoom='far'] .pt.is-candidate {
+  background: #5b3df5;
+}
+[data-zoom='far'] .pt:not(.is-fastest) svg {
+  display: none;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
+/* Аватарки семьи вокруг точки встречи (схематично) */
+.avatar-pin {
+  @apply grid h-9 w-9 place-items-center rounded-full border-2 border-white font-mono text-[11px] font-bold text-ink shadow-card animate-marker-in;
+  animation-delay: var(--d, 0ms);
+}
+
+/* Флаг в выборе языка: полосы качаются со сдвигом фазы, по ткани бежит блик */
+.flag-wave {
+  animation: flag-wave 1.7s ease-in-out infinite;
+}
+@keyframes flag-wave {
+  0%,
+  100% {
+    transform: translateY(-1px);
   }
+  50% {
+    transform: translateY(1px);
+  }
+}
+.flag-shine {
+  animation: flag-shine 3.2s ease-in-out infinite;
+}
+@keyframes flag-shine {
+  0% {
+    transform: translateX(0);
+  }
+  55%,
+  100% {
+    transform: translateX(64px);
+  }
+}
+
+/* ---------------- Уважение к reduced motion ---------------- */
+@media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .epicenter .wave,
+  .flag-shine {
+    display: none;
+  }
+  .flag-wave {
+    animation: none;
+  }
+  .lift:hover {
+    transform: none;
   }
 }

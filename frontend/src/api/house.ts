@@ -1,26 +1,36 @@
-import type { House } from './types'
-import { apiGet, config, delay } from './client'
-import { estimateHouse } from '@/lib/risk'
+import type { House, LngLat } from './types'
+import { findBuilding } from './buildings'
+import { findDemoHouseNear, getDemoHouse, toHouse } from './houses'
+import { extractHouseNumber } from '@/lib/addressNormalize'
 
-export interface HouseQuery {
-  lat: number
-  lon: number
+// Данные о доме — только честные источники:
+//  1) список домов src/data/demoHouses.json (реальные данные OSM, собраны
+//     скриптом scripts/build-houses.ts) — мгновенно и без сети;
+//  2) OpenStreetMap (Overpass): building:levels, start_date, building:material.
+// Всё, чего нет в источнике, — null («нет данных»).
+
+export interface HouseQuery extends LngLat {
   address: string
+  /** Если адрес выбран из списка домов — его id. */
+  houseId?: string
 }
 
-/**
- * Данные о доме и оценка риска по координатам/адресу.
- * В режиме моков — детерминированная эвристика (src/lib/risk.ts),
- * т.к. открытого реестра зданий Алматы у фронта нет.
- */
-export async function getHouse(query: HouseQuery, signal?: AbortSignal): Promise<House> {
-  if (config.useMocks) {
-    await delay(280)
-    return estimateHouse(query)
+export async function getHouse(q: HouseQuery, signal?: AbortSignal): Promise<House> {
+  const demo = getDemoHouse(q.houseId) ?? findDemoHouseNear(q)
+  if (demo) return toHouse(demo)
+
+  const b = await findBuilding(q, extractHouseNumber(q.address), signal)
+  return {
+    address: q.address,
+    lat: q.lat,
+    lng: q.lng,
+    year: b?.year ?? null,
+    yearApprox: b?.yearApprox,
+    floors: b?.floors ?? null,
+    material: b?.material ?? null,
+    series: b?.series ?? null,
+    source: b ? 'openstreetmap' : null,
+    sourceRef: b?.ref ?? null,
+    isDemo: false,
   }
-  return apiGet<House>(
-    '/house/',
-    { lat: query.lat, lon: query.lon, address: query.address },
-    signal,
-  )
 }
