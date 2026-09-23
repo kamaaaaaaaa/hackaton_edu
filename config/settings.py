@@ -54,6 +54,8 @@ INSTALLED_APPS = [
     'accounts',
     'core',
     'groups',
+    'authapi',
+    'analytics',
 ]
 
 AUTH_USER_MODEL = 'accounts.User'
@@ -171,6 +173,13 @@ MAILERS = {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
 }
+
+
+# Production admin bootstrap (no shell access on Render free tier; see
+# accounts/apps.py's post_migrate hook, gated to the gunicorn process).
+ADMIN_USERNAME = env("ADMIN_USERNAME", default="")
+ADMIN_EMAIL = env("ADMIN_EMAIL", default="")
+ADMIN_PASSWORD = env("ADMIN_PASSWORD", default="")
 
 
 # Production security hardening (Render deploys behind HTTPS)

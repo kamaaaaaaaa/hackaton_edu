@@ -1,0 +1,81 @@
+import json
+
+from django.test import TestCase
+
+from .models import AnalyticsEvent
+
+
+class TrackTests(TestCase):
+    def setUp(self):
+        self.url = '/api/analytics/track/'
+
+    def test_track_with_valid_event_returns_201(self):
+        response = self.client.post(
+            self.url,
+            data=json.dumps({'event': 'house_checked', 'meta': {'houseId': 7}}),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.json(), {'ok': True})
+
+        event = AnalyticsEvent.objects.get()
+        self.assertEqual(event.event_type, 'house_checked')
+        self.assertEqual(event.meta, {'houseId': 7})
+
+    def test_track_without_meta_defaults_to_empty_dict(self):
+        response = self.client.post(
+            self.url,
+            data=json.dumps({'event': 'app_opened'}),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 201)
+        event = AnalyticsEvent.objects.get()
+        self.assertEqual(event.meta, {})
+
+    def test_track_with_blank_event_returns_400(self):
+        response = self.client.post(
+            self.url,
+            data=json.dumps({'event': '   '}),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(AnalyticsEvent.objects.count(), 0)
+
+    def test_track_with_missing_event_returns_400(self):
+        response = self.client.post(
+            self.url,
+            data=json.dumps({}),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_track_with_malformed_json_returns_400_not_500(self):
+        response = self.client.post(self.url, data='{bad json', content_type='application/json')
+        self.assertEqual(response.status_code, 400)
+
+
+class SummaryTests(TestCase):
+    def setUp(self):
+        self.url = '/api/analytics/summary/'
+
+    def test_summary_reflects_tracked_events(self):
+        AnalyticsEvent.objects.create(event_type='house_checked', meta={})
+        AnalyticsEvent.objects.create(event_type='house_checked', meta={})
+        AnalyticsEvent.objects.create(event_type='app_opened', meta={})
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+
+        self.assertEqual(data['totalEvents'], 3)
+        self.assertEqual(data['byEventType'], {'house_checked': 2, 'app_opened': 1})
+        self.assertEqual(data['last24h'], 3)
+        self.assertIn('generatedAt', data)
+
+    def test_summary_with_no_events_returns_zeros(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data['totalEvents'], 0)
+        self.assertEqual(data['byEventType'], {})
+        self.assertEqual(data['last24h'], 0)
