@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { useI18n, type TranslationKey } from '@/i18n'
-import { countDistricts, getAssemblyPoints, OFFICIAL_TOTAL } from '@/api'
+// Напрямую, а не через '@/api': иначе в первый экран попадают данные домов и маршрутов
+import { countDistricts, getAssemblyPoints, OFFICIAL_TOTAL } from '@/api/assemblyPoints'
 import { useAlert } from '@/store/alert'
 import { SeismoCanvas } from '@/components/ui/SeismoCanvas'
 import { RevealWave } from '@/components/ui/RevealWave'

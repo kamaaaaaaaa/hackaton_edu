@@ -5,6 +5,7 @@ import { Header } from './Header'
 import { Footer } from './Footer'
 import { BottomNav } from './BottomNav'
 import { AlertOverlay } from './AlertOverlay'
+import { GeoToast } from './GeoToast'
 import { useAlert } from '@/store/alert'
 import { Spinner } from '@/components/ui/motion'
 
@@ -78,6 +79,7 @@ export function Layout() {
         {!isMap && <Footer />}
       </div>
       <BottomNav />
+      <GeoToast />
       <AlertOverlay />
     </div>
   )

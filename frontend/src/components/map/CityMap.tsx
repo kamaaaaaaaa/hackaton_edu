@@ -59,6 +59,8 @@ export interface CityMapProps {
   /** Выбранный шаг — подсвечивается и попадает в кадр. */
   highlight?: [number, number][] | null
   meeting?: LngLat | null
+  /** Текущее местоположение пользователя — синяя точка «Вы здесь». */
+  me?: LngLat | null
   /** Аватарки вокруг точки встречи (схема, не геолокация). */
   avatars?: { id: string; label: string; ring: string }[]
   padding?: Padding
@@ -166,6 +168,7 @@ export default function CityMap({
   stepPoints = [],
   highlight = null,
   meeting = null,
+  me = null,
   avatars = [],
   padding = { top: 80, right: 40, bottom: 80, left: 40 },
   bottomInset = 0,
@@ -659,6 +662,30 @@ export default function CityMap({
       duration: reducedMotion() ? 0 : 700,
     })
   }, [highlight, ready])
+
+  // ---------- «Вы здесь» ----------
+  const meMarker = useRef<Marker | null>(null)
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+    if (!me) {
+      meMarker.current?.remove()
+      meMarker.current = null
+      return
+    }
+    if (meMarker.current) {
+      meMarker.current.setLngLat([me.lng, me.lat])
+      return
+    }
+    const el = document.createElement('div')
+    el.className = 'me-dot'
+    el.setAttribute('role', 'img')
+    el.setAttribute('aria-label', t('map.me'))
+    el.title = t('map.me')
+    el.innerHTML = '<span class="me-halo"></span><span class="me-core"></span>'
+    meMarker.current = new Marker({ element: el }).setLngLat([me.lng, me.lat]).addTo(map)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [me?.lng, me?.lat])
 
   // ---------- Точка встречи и аватарки семьи ----------
   const familyMarkers = useRef<Marker[]>([])

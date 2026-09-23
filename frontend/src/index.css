@@ -284,6 +284,29 @@ html.lenis body {
   display: none;
 }
 
+/* «Вы здесь» — текущее местоположение пользователя */
+.me-dot {
+  position: relative;
+  width: 22px;
+  height: 22px;
+}
+.me-dot .me-core {
+  position: absolute;
+  inset: 3px;
+  border-radius: 9999px;
+  background: #2e7cf6;
+  box-shadow:
+    0 0 0 3px #fff,
+    0 2px 8px rgba(46, 124, 246, 0.55);
+}
+.me-dot .me-halo {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: rgba(46, 124, 246, 0.35);
+  @apply animate-ring;
+}
+
 /* Аватарки семьи вокруг точки встречи (схематично) */
 .avatar-pin {
   @apply grid h-9 w-9 place-items-center rounded-full border-2 border-white font-mono text-[11px] font-bold text-ink shadow-card animate-marker-in;
@@ -327,6 +350,7 @@ html.lenis body {
     scroll-behavior: auto !important;
   }
   .epicenter .wave,
+  .me-dot .me-halo,
   .flag-shine {
     display: none;
   }
