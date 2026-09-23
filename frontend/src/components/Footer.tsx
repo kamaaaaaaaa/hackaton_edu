@@ -17,7 +17,7 @@ export function Footer() {
             <br className="hidden sm:block" /> {t('footer.map')}
           </span>
           <Link
-            to="/login/admin"
+            to="/dev"
             className="inline-flex shrink-0 items-center gap-1 text-subink/70 transition hover:text-subink"
           >
             {t('footer.dev')}

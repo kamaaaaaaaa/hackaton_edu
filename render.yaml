@@ -43,6 +43,9 @@ services:
       - key: VITE_TOMTOM_KEY
         sync: false
     routes:
+      - type: redirect
+        source: /login/admin
+        destination: https://hackathon-base.onrender.com/admin/
       - type: rewrite
         source: /*
         destination: /index.html
