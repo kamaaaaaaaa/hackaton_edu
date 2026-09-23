@@ -33,12 +33,12 @@ export default defineConfig({
         navigateFallbackDenylist: [/^\/admin/, /^\/accounts/, /^\/api/],
         runtimeCaching: [
           {
-            // Тайлы OpenStreetMap — кэшируем, чтобы карта открывалась быстрее
+            // Тайлы TomTom Maps — кэшируем, чтобы карта открывалась быстрее
             // и частично работала офлайн.
-            urlPattern: ({ url }) => url.host.includes('tile.openstreetmap.org'),
+            urlPattern: ({ url }) => url.host.includes('api.tomtom.com'),
             handler: 'CacheFirst',
             options: {
-              cacheName: 'osm-basemap-tiles',
+              cacheName: 'tomtom-basemap-tiles',
               expiration: { maxEntries: 600, maxAgeSeconds: 60 * 60 * 24 * 14 },
               cacheableResponse: { statuses: [0, 200] },
             },
