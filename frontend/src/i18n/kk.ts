@@ -37,7 +37,7 @@ export const kk: Partial<Record<TranslationKey, string>> = {
   'unit.floors': 'қаб.',
   'install.cta': 'Телефонға орнату',
 
-  'landing.title.a': 'Сілкінген кезде —',
+  'landing.title.a': 'Жерсілкінісі болғанда —',
   'landing.title.b': 'не істеу керегін білесің',
   'landing.cta': 'Үйімді тексеру',
   'landing.cta.drill': 'Оқу дабылы · 60 сек',

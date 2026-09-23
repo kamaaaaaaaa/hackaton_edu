@@ -137,7 +137,8 @@ export function Landing() {
             <span className="cap">{t('landing.cap.city')}</span>
           </div>
 
-          <h1 className="mt-10 max-w-5xl font-display text-hero font-bold md:mt-14">
+          {/* «землетрясение» — длинное слово: размер подобран, чтобы оно помещалось от 320 px */}
+          <h1 className="mt-10 max-w-5xl font-display text-[clamp(1.45rem,7.4vw,5.75rem)] font-bold leading-[1.02] tracking-[-0.035em] md:mt-14">
             <SplitText text={t('landing.title.a')} />{' '}
             <SplitText text={t('landing.title.b')} delay={0.25} className="text-accent" />
           </h1>
