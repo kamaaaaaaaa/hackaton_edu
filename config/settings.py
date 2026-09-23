@@ -143,6 +143,14 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# Serves the built React app (frontend_dist/, built via `npm run build` and
+# committed — Render's Python build environment has no Node.js) directly at
+# the URL root: /assets/*.js, /manifest.webmanifest, /favicon.svg, etc.
+# Doesn't overlap STATIC_URL ('static/'), since Vite's own asset paths are
+# under /assets/. The SPA shell itself (index.html, for "/" and every
+# client-side route) is served by core.views.spa, not WhiteNoise.
+WHITENOISE_ROOT = BASE_DIR / 'frontend_dist'
+
 STORAGES = {
     'default': {
         'BACKEND': 'django.core.files.storage.FileSystemStorage',

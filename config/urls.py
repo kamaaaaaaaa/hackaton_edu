@@ -15,7 +15,9 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import include, path, re_path
+
+from core.views import spa
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,4 +27,9 @@ urlpatterns = [
     path('api/auth/', include('authapi.urls')),
     path('api/analytics/', include('analytics.urls')),
     path('', include('core.urls')),
+    # Catch-all: every other path belongs to the React app's client-side
+    # router (e.g. /map, /family, /checklist, /login, /register, /dev) —
+    # serve the SPA shell and let React Router take it from there. Must
+    # stay LAST so it never shadows admin/api/accounts.
+    re_path(r'^(?P<path>.*)$', spa),
 ]
