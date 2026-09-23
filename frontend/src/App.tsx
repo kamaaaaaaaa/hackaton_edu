@@ -19,7 +19,7 @@ export default function App() {
         <Route path="/checklist" element={<Checklist />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/dev" element={<DevPanel />} />
+        <Route path="/login/admin" element={<DevPanel />} />
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
