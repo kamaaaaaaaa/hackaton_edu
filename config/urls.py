@@ -26,6 +26,8 @@ urlpatterns = [
     path('api/groups/', include('groups.urls')),
     path('api/auth/', include('authapi.urls')),
     path('api/analytics/', include('analytics.urls')),
+    path('api/assembly-points/', include('assemblypoints.urls')),
+    path('api/checklist/', include('checklist.urls')),
     path('', include('core.urls')),
     # Catch-all: every other path belongs to the React app's client-side
     # router (e.g. /map, /family, /checklist, /login, /register, /dev) —

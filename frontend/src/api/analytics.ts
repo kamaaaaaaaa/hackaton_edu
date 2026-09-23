@@ -24,14 +24,14 @@ export function trackEvent(event: string, meta?: object): void {
   }).catch(() => undefined)
 }
 
-export async function getAnalyticsSummary(): Promise<AnalyticsSummary> {
+export async function getAnalyticsSummary(token: string): Promise<AnalyticsSummary> {
   if (!config.apiUrl) {
     throw new ApiError(0, 'VITE_API_URL не задан. Укажи адрес бэкенда в .env.')
   }
   let res: Response
   try {
     res = await fetch(`${config.apiUrl}/analytics/summary/`, {
-      headers: { Accept: 'application/json' },
+      headers: { Accept: 'application/json', Authorization: `Token ${token}` },
     })
   } catch {
     throw new ApiError(0, 'Не удалось подключиться к серверу. Проверьте интернет-соединение.')

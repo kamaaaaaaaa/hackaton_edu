@@ -56,6 +56,8 @@ INSTALLED_APPS = [
     'groups',
     'authapi',
     'analytics',
+    'assemblypoints',
+    'checklist',
 ]
 
 AUTH_USER_MODEL = 'accounts.User'

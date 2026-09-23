@@ -53,7 +53,7 @@ def _member_data(member, is_self, include_token=False):
 
 
 def _group_data(group):
-    return {'code': group.code}
+    return {'code': group.code, 'meetingPointId': group.meeting_point_id or None}
 
 
 def _parse_json_body(request):
@@ -182,3 +182,39 @@ def update_member(request, code, member_id):
     member.save(update_fields=['status', 'updated_at'])
 
     return JsonResponse(_member_data(member, is_self=False), status=200)
+
+
+@csrf_exempt
+@require_http_methods(['PATCH'])
+def update_meeting_point(request, code):
+    payload, error_response = _parse_json_body(request)
+    if error_response:
+        return error_response
+
+    if not isinstance(payload, dict):
+        return JsonResponse({'error': 'Некорректный JSON'}, status=400)
+
+    try:
+        group = FamilyGroup.objects.get(code=code.strip().upper())
+    except FamilyGroup.DoesNotExist:
+        return JsonResponse({'error': 'Группа с таким кодом не найдена'}, status=404)
+
+    token = payload.get('token', '')
+    if not token or not group.members.filter(token=token).exists():
+        return JsonResponse({'error': 'Неверный токен'}, status=403)
+
+    if 'pointId' not in payload:
+        return JsonResponse(
+            {'error': 'pointId должен быть строкой или null'}, status=400
+        )
+
+    point_id = payload['pointId']
+    if point_id is not None and not isinstance(point_id, str):
+        return JsonResponse(
+            {'error': 'pointId должен быть строкой или null'}, status=400
+        )
+
+    group.meeting_point_id = point_id or ''
+    group.save(update_fields=['meeting_point_id'])
+
+    return JsonResponse({'group': _group_data(group)}, status=200)

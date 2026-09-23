@@ -18,6 +18,7 @@ function errorMessage(e: unknown, fallback: string): string {
 
 interface AuthValue {
   user: AuthUser | null
+  token: string | null
   loading: boolean
   error: string | null
   register: (params: { username: string; email: string; password: string }) => Promise<void>
@@ -114,8 +115,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [token])
 
   const value = useMemo(
-    () => ({ user, loading, error, register, login, logout }),
-    [user, loading, error, register, login, logout],
+    () => ({ user, token, loading, error, register, login, logout }),
+    [user, token, loading, error, register, login, logout],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

@@ -401,6 +401,9 @@ export const ru = {
   'dev.noEvents': 'Событий пока нет.',
   'dev.generatedAt': 'Обновлено',
   'dev.adminCta': 'Открыть Django admin',
+  'dev.needLogin': 'Эта страница доступна только администраторам. Войдите в аккаунт.',
+  'dev.needLoginCta': 'Войти',
+  'dev.forbidden': 'У вас нет прав администратора для просмотра этой страницы.',
 
   // ---------- 404 ----------
   'notfound.title': 'Сигнала нет',

@@ -241,3 +241,160 @@ class UpdateMemberTests(TestCase):
             content_type='application/json',
         )
         self.assertEqual(response.status_code, 400)
+
+
+class GroupDataMeetingPointFieldTests(TestCase):
+    def test_create_response_includes_meeting_point_id_as_null_by_default(self):
+        response = self.client.post(
+            '/api/groups/create/',
+            data=json.dumps({'name': 'Мама'}),
+            content_type='application/json',
+        )
+        self.assertIn('meetingPointId', response.json()['group'])
+        self.assertIsNone(response.json()['group']['meetingPointId'])
+
+    def test_join_response_includes_meeting_point_id(self):
+        create_response = self.client.post(
+            '/api/groups/create/',
+            data=json.dumps({'name': 'Мама'}),
+            content_type='application/json',
+        )
+        code = create_response.json()['group']['code']
+        join_response = self.client.post(
+            '/api/groups/join/',
+            data=json.dumps({'code': code, 'name': 'Папа'}),
+            content_type='application/json',
+        )
+        self.assertIn('meetingPointId', join_response.json()['group'])
+
+    def test_members_list_response_includes_meeting_point_id(self):
+        create_response = self.client.post(
+            '/api/groups/create/',
+            data=json.dumps({'name': 'Мама'}),
+            content_type='application/json',
+        )
+        code = create_response.json()['group']['code']
+        list_response = self.client.get(f'/api/groups/{code}/members/')
+        self.assertIn('meetingPointId', list_response.json()['group'])
+
+
+class UpdateMeetingPointTests(TestCase):
+    def setUp(self):
+        response = self.client.post(
+            '/api/groups/create/',
+            data=json.dumps({'name': 'Мама'}),
+            content_type='application/json',
+        )
+        data = response.json()
+        self.group_code = data['group']['code']
+        self.token = data['member']['token']
+        self.patch_url = f'/api/groups/{self.group_code}/meeting-point/'
+
+    def test_patch_with_correct_token_sets_meeting_point_and_returns_200(self):
+        response = self.client.patch(
+            self.patch_url,
+            data=json.dumps({'token': self.token, 'pointId': 'alatau-01'}),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json(), {'group': {'code': self.group_code, 'meetingPointId': 'alatau-01'}}
+        )
+
+        group = FamilyGroup.objects.get(code=self.group_code)
+        self.assertEqual(group.meeting_point_id, 'alatau-01')
+
+    def test_patch_with_null_point_id_clears_meeting_point(self):
+        self.client.patch(
+            self.patch_url,
+            data=json.dumps({'token': self.token, 'pointId': 'alatau-01'}),
+            content_type='application/json',
+        )
+        response = self.client.patch(
+            self.patch_url,
+            data=json.dumps({'token': self.token, 'pointId': None}),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(response.json()['group']['meetingPointId'])
+
+        group = FamilyGroup.objects.get(code=self.group_code)
+        self.assertEqual(group.meeting_point_id, '')
+
+    def test_patch_works_for_any_member_of_the_group_not_just_creator(self):
+        join_response = self.client.post(
+            '/api/groups/join/',
+            data=json.dumps({'code': self.group_code, 'name': 'Папа'}),
+            content_type='application/json',
+        )
+        other_token = join_response.json()['member']['token']
+
+        response = self.client.patch(
+            self.patch_url,
+            data=json.dumps({'token': other_token, 'pointId': 'almaly-01'}),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['group']['meetingPointId'], 'almaly-01')
+
+    def test_patch_with_wrong_token_returns_403_and_does_not_change_point(self):
+        response = self.client.patch(
+            self.patch_url,
+            data=json.dumps({'token': 'wrong-token', 'pointId': 'alatau-01'}),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.json(), {'error': 'Неверный токен'})
+
+        group = FamilyGroup.objects.get(code=self.group_code)
+        self.assertEqual(group.meeting_point_id, '')
+
+    def test_patch_on_nonexistent_group_returns_404(self):
+        response = self.client.patch(
+            '/api/groups/ZZZZZZ/meeting-point/',
+            data=json.dumps({'token': self.token, 'pointId': 'alatau-01'}),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(
+            response.json(), {'error': 'Группа с таким кодом не найдена'}
+        )
+
+    def test_patch_is_case_insensitive_on_code(self):
+        response = self.client.patch(
+            f'/api/groups/{self.group_code.lower()}/meeting-point/',
+            data=json.dumps({'token': self.token, 'pointId': 'alatau-01'}),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_patch_with_malformed_json_returns_400(self):
+        response = self.client.patch(
+            self.patch_url,
+            data=b'not json at all',
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json(), {'error': 'Некорректный JSON'})
+
+    def test_patch_with_non_string_point_id_returns_400(self):
+        response = self.client.patch(
+            self.patch_url,
+            data=json.dumps({'token': self.token, 'pointId': 42}),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.json(), {'error': 'pointId должен быть строкой или null'}
+        )
+
+    def test_patch_with_missing_point_id_key_returns_400(self):
+        response = self.client.patch(
+            self.patch_url,
+            data=json.dumps({'token': self.token}),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.json(), {'error': 'pointId должен быть строкой или null'}
+        )
