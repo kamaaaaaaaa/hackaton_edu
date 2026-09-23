@@ -2,12 +2,14 @@
 // через модули api/*, которые сами выбирают: моки или реальный бэкенд.
 
 const useMocks = (import.meta.env.VITE_USE_MOCKS ?? 'true').toString().toLowerCase() !== 'false'
-const apiUrl = (import.meta.env.VITE_API_URL ?? '').replace(/\/+$/, '')
+// По умолчанию — тот же домен: на Render Django отдаёт и сайт, и /api,
+// а в разработке Vite проксирует /api на бэкенд (vite.config.ts → server.proxy).
+const apiUrl = (import.meta.env.VITE_API_URL || '/api').replace(/\/+$/, '')
 
 export const config = {
   /** true — берём данные из src/mocks, бэкенд не нужен. */
   useMocks,
-  /** Базовый URL реального API (без хвостового слэша). */
+  /** Базовый URL реального API (без хвостового слэша): «/api» или полный адрес. */
   apiUrl,
 }
 
@@ -33,7 +35,7 @@ export async function apiGet<T>(path: string, params?: Params, signal?: AbortSig
   if (!apiUrl) {
     throw new ApiError(0, 'VITE_API_URL не задан, а VITE_USE_MOCKS=false. Укажи адрес бэкенда в .env.')
   }
-  const url = new URL(apiUrl + path)
+  const url = new URL(apiUrl + path, window.location.origin)
   if (params) {
     for (const [key, value] of Object.entries(params)) {
       if (value !== undefined) url.searchParams.set(key, String(value))
