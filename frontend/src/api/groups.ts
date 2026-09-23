@@ -46,6 +46,8 @@ async function requestJson<T>(path: string, method: string, body?: unknown): Pro
         Accept: 'application/json',
       },
       body: body !== undefined ? JSON.stringify(body) : undefined,
+      // Бесплатный Render «засыпает»: первый запрос может идти ~40 с — ждём до 70 с
+      signal: typeof AbortSignal.timeout === 'function' ? AbortSignal.timeout(70000) : undefined,
     })
   } catch {
     throw new ApiError(0, 'Не удалось подключиться к серверу. Проверьте интернет-соединение.')
