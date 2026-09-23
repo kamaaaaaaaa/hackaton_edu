@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Готов к толчку">
+  <rect width="512" height="512" fill="#0B1437"/>
+  <path d="M116 268 H176 L212 210 L258 338 L302 172 L342 306 L372 268 H396"
+        fill="none" stroke="#3B6BFF" stroke-width="26"
+        stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

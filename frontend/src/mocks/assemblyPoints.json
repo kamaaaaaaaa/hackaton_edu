@@ -1,0 +1,182 @@
+[
+  {
+    "id": "cpkio",
+    "name": "Центральный парк культуры и отдыха",
+    "type": "park",
+    "district": "Медеуский",
+    "address": "ул. Гоголя, 1",
+    "lat": 43.2637,
+    "lon": 76.9573,
+    "capacity": 15000
+  },
+  {
+    "id": "panfilov",
+    "name": "Парк 28 гвардейцев-панфиловцев",
+    "type": "park",
+    "district": "Медеуский",
+    "address": "ул. Гоголя — просп. Достык",
+    "lat": 43.2586,
+    "lon": 76.9556,
+    "capacity": 12000
+  },
+  {
+    "id": "first-president",
+    "name": "Парк Первого Президента",
+    "type": "park",
+    "district": "Бостандыкский",
+    "address": "просп. Аль-Фараби — ул. Навои",
+    "lat": 43.1937,
+    "lon": 76.8886,
+    "capacity": 40000
+  },
+  {
+    "id": "botanical-garden",
+    "name": "Главный ботанический сад",
+    "type": "park",
+    "district": "Бостандыкский",
+    "address": "ул. Тимирязева, 36д",
+    "lat": 43.2206,
+    "lon": 76.919,
+    "capacity": 18000
+  },
+  {
+    "id": "central-stadium",
+    "name": "Центральный стадион",
+    "type": "stadium",
+    "district": "Алмалинский",
+    "address": "просп. Абая, 48",
+    "lat": 43.249,
+    "lon": 76.927,
+    "capacity": 23000
+  },
+  {
+    "id": "almaty-arena",
+    "name": "Ледовый дворец «Алматы Арена»",
+    "type": "stadium",
+    "district": "Ауэзовский",
+    "address": "ул. Момышулы, 2",
+    "lat": 43.2765,
+    "lon": 76.8302,
+    "capacity": 12000
+  },
+  {
+    "id": "halyk-arena",
+    "name": "Спорткомплекс «Halyk Arena»",
+    "type": "stadium",
+    "district": "Ауэзовский",
+    "address": "ул. Момышулы, 4",
+    "lat": 43.2789,
+    "lon": 76.8261,
+    "capacity": 3000
+  },
+  {
+    "id": "republic-square",
+    "name": "Площадь Республики",
+    "type": "square",
+    "district": "Медеуский",
+    "address": "просп. Достык — ул. Сатпаева",
+    "lat": 43.2389,
+    "lon": 76.9455,
+    "capacity": 20000
+  },
+  {
+    "id": "astana-square",
+    "name": "Площадь Астаны (Новая площадь)",
+    "type": "square",
+    "district": "Медеуский",
+    "address": "просп. Достык, 85",
+    "lat": 43.2364,
+    "lon": 76.9552,
+    "capacity": 8000
+  },
+  {
+    "id": "baum-grove",
+    "name": "Роща Баума",
+    "type": "park",
+    "district": "Жетысуский",
+    "address": "ул. Кургальжинская",
+    "lat": 43.2884,
+    "lon": 76.9312,
+    "capacity": 10000
+  },
+  {
+    "id": "atakent",
+    "name": "Парк «Атакент»",
+    "type": "park",
+    "district": "Бостандыкский",
+    "address": "просп. Тимирязева, 42",
+    "lat": 43.2296,
+    "lon": 76.9066,
+    "capacity": 9000
+  },
+  {
+    "id": "gandhi-park",
+    "name": "Сад имени Махатмы Ганди",
+    "type": "park",
+    "district": "Бостандыкский",
+    "address": "ул. Ходжанова",
+    "lat": 43.2076,
+    "lon": 76.8862,
+    "capacity": 6000
+  },
+  {
+    "id": "sairan",
+    "name": "Набережная озера Сайран",
+    "type": "field",
+    "district": "Ауэзовский",
+    "address": "просп. Абая — ул. Утеген батыра",
+    "lat": 43.2481,
+    "lon": 76.871,
+    "capacity": 11000
+  },
+  {
+    "id": "terrenkur",
+    "name": "Терренкур (набережная Есентай)",
+    "type": "field",
+    "district": "Бостандыкский",
+    "address": "вдоль реки Есентай",
+    "lat": 43.205,
+    "lon": 76.899,
+    "capacity": 7000
+  },
+  {
+    "id": "meokan-square",
+    "name": "Площадь перед Дворцом спорта им. Балуана Шолака",
+    "type": "square",
+    "district": "Алмалинский",
+    "address": "ул. Абая, 44",
+    "lat": 43.2565,
+    "lon": 76.943,
+    "capacity": 5000
+  },
+  {
+    "id": "sunkar-park",
+    "name": "Парк «Южный» (мкр Аксай)",
+    "type": "park",
+    "district": "Ауэзовский",
+    "address": "мкр Аксай-3",
+    "lat": 43.2211,
+    "lon": 76.8407,
+    "capacity": 6000
+  },
+  {
+    "id": "koktobe-foot",
+    "name": "Парковая зона у подножия Кок-Тобе",
+    "type": "other",
+    "district": "Медеуский",
+    "address": "ул. Омарова",
+    "lat": 43.234,
+    "lon": 76.974,
+    "capacity": 4000
+  },
+  {
+    "id": "medeu",
+    "name": "Открытая зона урочища Медеу",
+    "type": "other",
+    "district": "Медеуский",
+    "address": "просп. Достык, 448",
+    "lat": 43.158,
+    "lon": 77.0553,
+    "capacity": 8000
+  }
+]
