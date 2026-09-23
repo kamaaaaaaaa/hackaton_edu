@@ -22,3 +22,15 @@ services:
         fromDatabase:
           name: hackathon-base-db
           property: connectionString
+
+  - type: web
+    name: gotov-k-tolchku
+    env: static
+    plan: free
+    rootDir: frontend
+    buildCommand: "npm install && npm run build"
+    staticPublishPath: ./dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
