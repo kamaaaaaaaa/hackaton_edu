@@ -54,12 +54,13 @@ export function MapView({ points, house, nearest, showRoute }: Props) {
       scrollWheelZoom
       className="h-full w-full"
     >
-      {/* Базовые тайлы OpenStreetMap; в CSS приглушаются под светлый минимализм. */}
+      {/* Тайлы TomTom Maps (Map Display API); в CSS приглушаются под светлый минимализм. */}
       <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        subdomains="abc"
+        url={`https://api.tomtom.com/map/1/tile/basic/main/{z}/{x}/{y}.png?key=${
+          import.meta.env.VITE_TOMTOM_KEY as string
+        }`}
         maxZoom={19}
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        attribution='&copy; <a href="https://www.tomtom.com">TomTom</a>'
       />
 
       {points.map((p) => {

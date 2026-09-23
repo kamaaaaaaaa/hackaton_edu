@@ -29,6 +29,11 @@ services:
     rootDir: frontend
     buildCommand: "npm install && npm run build"
     staticPublishPath: ./dist
+    envVars:
+      - key: VITE_USE_MOCKS
+        value: "true"
+      - key: VITE_TOMTOM_KEY
+        sync: false
     routes:
       - type: rewrite
         source: /*
