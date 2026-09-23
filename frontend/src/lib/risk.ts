@@ -1,82 +1,89 @@
 import type { House, RiskLevel } from '@/api/types'
-import type { HouseQuery } from '@/api/house'
+import type { TranslationKey } from '@/i18n/ru'
 
-// ДЕТЕРМИНИРОВАННАЯ эвристика оценки риска для демо.
-// Реальных данных по зданиям Алматы у фронта нет, поэтому по адресу+координатам
-// стабильно «выводим» этажность, год и тип, а из них — балл риска.
-// Один и тот же адрес всегда даёт один и тот же результат (не «прыгает»).
-// На проде это заменит ответ бэкенда GET /house/ (см. API_CONTRACT.md).
+// Прозрачная предварительная оценка риска здания. НЕ официальное заключение.
+// Считаем только по известным полям — ничего не угадываем:
+//   год постройки: до 1957 (до первых сейсмонорм) +3 · 1957–1981 +2 · 1982–2006 +1 · позже 0
+//   материал:      кирпич/камень/саман +2 · панель/блок +1 · монолит/каркас 0
+//   этажность:     больше 9 этажей +1 (эвакуация дольше, лифт запрещён)
+//   уровень:       0–1 низкий · 2–3 средний · 4+ высокий
+// Нет ни года, ни материала → «недостаточно данных», уровень не выставляем.
 
-const BUILDING_TYPES = [
-  'Панельный',
-  'Кирпичный',
-  'Монолитно-каркасный',
-  'Каркасно-камышитовый',
-  'Крупноблочный',
-]
+export type FactorKey = 'year' | 'material' | 'floors'
 
-/** FNV-1a хеш строки → uint32. */
-function hash(str: string): number {
-  let h = 2166136261
-  for (let i = 0; i < str.length; i++) {
-    h ^= str.charCodeAt(i)
-    h = Math.imul(h, 16777619)
-  }
-  return h >>> 0
+export interface RiskFactor {
+  key: FactorKey
+  /** Значение из данных — как показать пользователю; null — нет данных. */
+  value: string | null
+  /** Баллы; null — фактор не учитывается. */
+  points: number | null
+  /** Пояснение категории (ключ словаря); null — нет данных. */
+  labelKey: TranslationKey | null
 }
 
-export function estimateHouse({ lat, lon, address }: HouseQuery): House {
-  const seed = hash(`${address}|${lat.toFixed(4)}|${lon.toFixed(4)}`)
-
-  // ВАЖНО: беззнаковый сдвиг >>>, иначе большой хеш даёт отрицательный индекс.
-  const floors = 1 + (seed % 16) // 1..16
-  const yearBuilt = 1955 + ((seed >>> 4) % 69) // 1955..2023
-  const buildingType =
-    BUILDING_TYPES[(seed >>> 9) % BUILDING_TYPES.length] ?? BUILDING_TYPES[0]
-
-  // Балл риска: старый фонд, высокая этажность и хрупкие конструкции — выше.
-  let score = 30
-  if (yearBuilt < 1981)
-    score += 28 // до актуализации сейсмонорм СНиП
-  else if (yearBuilt < 2004) score += 14
-  else score -= 6
-
-  if (floors >= 9) score += 16
-  else if (floors >= 5) score += 8
-
-  if (buildingType === 'Каркасно-камышитовый') score += 22
-  if (buildingType === 'Крупноблочный') score += 12
-  if (buildingType === 'Монолитно-каркасный') score -= 14
-
-  score += (seed % 11) - 5 // небольшой разброс ±5
-  score = Math.max(6, Math.min(96, Math.round(score)))
-
-  const risk: RiskLevel = score >= 66 ? 'high' : score >= 40 ? 'mid' : 'low'
-
-  return {
-    address,
-    lat,
-    lon,
-    floors,
-    yearBuilt,
-    buildingType,
-    risk,
-    riskScore: score,
-    riskReason: reasonRu(risk, yearBuilt, floors, buildingType),
-    estimated: true,
-  }
+export interface RiskAssessment {
+  /** null — недостаточно данных для оценки. */
+  level: RiskLevel | null
+  score: number | null
+  /** Максимально возможный балл по формуле — для шкалы. */
+  maxScore: number
+  factors: RiskFactor[]
 }
 
-function reasonRu(risk: RiskLevel, year: number, floors: number, type: string): string {
-  const age =
-    year < 1981
-      ? 'дом старше актуальных сейсмонорм'
-      : year < 2004
-        ? 'постройка переходного периода норм'
-        : 'относительно новый дом'
-  const height = floors >= 9 ? 'высокая этажность' : floors >= 5 ? 'средняя этажность' : 'малоэтажный'
-  const base = `${age}, ${height}, ${type.toLowerCase()}`
-  if (risk === 'high') return `Высокий риск: ${base}. Заранее продумай маршрут эвакуации.`
-  if (risk === 'mid') return `Средний риск: ${base}. Держи наготове тревожный чемоданчик.`
-  return `Низкий риск: ${base}. Всё равно знай ближайший пункт сбора.`
+export const RISK_MAX_SCORE = 6
+
+type MaterialClass = 'masonry' | 'panel' | 'frame' | 'other'
+
+/** Материал из OSM (building:material) или данных команды → класс формулы. */
+export function classifyMaterial(raw: string): MaterialClass {
+  const m = raw.trim().toLowerCase()
+  if (/^(brick|stone|adobe|mud|clay|masonry|cob|rammed_earth)$/.test(m) || /(кирпич|камен|саман)/.test(m))
+    return 'masonry'
+  if (/(panel|block|prefab)/.test(m) || /(панел|блок)/.test(m)) return 'panel'
+  if (/^(reinforced_concrete|concrete|steel|metal)$/.test(m) || /(монолит|каркас|железобетон)/.test(m))
+    return 'frame'
+  return 'other'
+}
+
+function yearFactor(year: number | null, approx?: boolean): RiskFactor {
+  if (year === null) return { key: 'year', value: null, points: null, labelKey: null }
+  const value = `${approx ? '≈' : ''}${year}`
+  if (year < 1957) return { key: 'year', value, points: 3, labelKey: 'house.factor.year.pre1957' }
+  if (year <= 1981) return { key: 'year', value, points: 2, labelKey: 'house.factor.year.1957' }
+  if (year <= 2006) return { key: 'year', value, points: 1, labelKey: 'house.factor.year.1982' }
+  return { key: 'year', value, points: 0, labelKey: 'house.factor.year.post2006' }
+}
+
+function materialFactor(material: string | null): RiskFactor {
+  if (!material) return { key: 'material', value: null, points: null, labelKey: null }
+  const cls = classifyMaterial(material)
+  if (cls === 'masonry')
+    return { key: 'material', value: material, points: 2, labelKey: 'house.factor.material.masonry' }
+  if (cls === 'panel')
+    return { key: 'material', value: material, points: 1, labelKey: 'house.factor.material.panel' }
+  if (cls === 'frame')
+    return { key: 'material', value: material, points: 0, labelKey: 'house.factor.material.frame' }
+  return { key: 'material', value: material, points: null, labelKey: 'house.factor.material.other' }
+}
+
+function floorsFactor(floors: number | null): RiskFactor {
+  if (floors === null) return { key: 'floors', value: null, points: null, labelKey: null }
+  return floors > 9
+    ? { key: 'floors', value: String(floors), points: 1, labelKey: 'house.factor.floors.high' }
+    : { key: 'floors', value: String(floors), points: 0, labelKey: 'house.factor.floors.normal' }
+}
+
+export function assessRisk(house: Pick<House, 'year' | 'yearApprox' | 'material' | 'floors'>): RiskAssessment {
+  const factors = [
+    yearFactor(house.year, house.yearApprox),
+    materialFactor(house.material),
+    floorsFactor(house.floors),
+  ]
+  const [year, material] = factors
+  const enough = year.points !== null || material.points !== null
+  if (!enough) return { level: null, score: null, maxScore: RISK_MAX_SCORE, factors }
+
+  const score = factors.reduce((sum, f) => sum + (f.points ?? 0), 0)
+  const level: RiskLevel = score <= 1 ? 'low' : score <= 3 ? 'mid' : 'high'
+  return { level, score, maxScore: RISK_MAX_SCORE, factors }
 }

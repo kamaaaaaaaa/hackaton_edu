@@ -1,14 +1,31 @@
-import type { AssemblyPoint } from './types'
-import { apiGet, config, delay } from './client'
-import rawPoints from '@/mocks/assemblyPoints.json'
+import type { AssemblyPoint, MappedPoint } from './types'
+import { isMapped } from '@/lib/geo'
+import raw from '@/data/assemblyPoints.json'
 
-const mockPoints = rawPoints as unknown as AssemblyPoint[]
+// Официальные пункты приёма населения — распоряжение акима г. Алматы
+// от 28.11.2022 №123ө. Координаты — результат scripts/geocode-points.ts
+// (OpenStreetMap Nominatim, строгие проверки); точки с needsReview на карте не показываются.
+// Это не моки: данные статичны и лежат в сборке. Когда у бэкенда появится
+// GET /assembly-points/ (см. API_CONTRACT.md), заменить источник здесь.
 
-/** Список пунктов сбора. Моки — src/mocks/assemblyPoints.json. */
-export async function getAssemblyPoints(signal?: AbortSignal): Promise<AssemblyPoint[]> {
-  if (config.useMocks) {
-    await delay(200)
-    return mockPoints
-  }
-  return apiGet<AssemblyPoint[]>('/assembly-points/', undefined, signal)
+const all = raw as unknown as AssemblyPoint[]
+
+/** Число пунктов в официальном распоряжении (полный список). */
+export const OFFICIAL_TOTAL = 384
+
+export function getAssemblyPoints(): AssemblyPoint[] {
+  return all
+}
+
+/** Только пункты с подтверждёнными координатами. */
+export function getMappedPoints(): MappedPoint[] {
+  return all.filter(isMapped)
+}
+
+export function getPointById(id: string | null): AssemblyPoint | null {
+  return id ? (all.find((p) => p.id === id) ?? null) : null
+}
+
+export function countDistricts(): number {
+  return new Set(all.map((p) => p.district)).size
 }
