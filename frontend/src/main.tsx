@@ -12,6 +12,7 @@ import { I18nProvider } from './i18n'
 import { AlertProvider } from './store/alert'
 import { AuthProvider } from './store/auth'
 import { MotionProvider } from './motion/MotionProvider'
+import { initGeolocation } from './store/geo'
 
 createRoot(document.getElementById('root') as HTMLElement).render(
   <StrictMode>
@@ -28,3 +29,7 @@ createRoot(document.getElementById('root') as HTMLElement).render(
     </BrowserRouter>
   </StrictMode>,
 )
+
+// Сразу при входе на сайт — системный вопрос «Разрешить доступ к геолокации?».
+// Разрешили — карта сама покажет «Вы здесь» и маршрут до ближайшего пункта.
+initGeolocation()

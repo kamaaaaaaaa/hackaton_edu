@@ -21,6 +21,7 @@ import { assessRisk } from '@/lib/risk'
 import { haversine, isMapped, nearestByStraightLine } from '@/lib/geo'
 import { formatDistance, formatMinutes, shortAddress } from '@/lib/format'
 import { setSelected, useSelected, type SelectedPlace } from '@/store/house'
+import { isInAlmaty, requestLocation, useGeo, watchLocation } from '@/store/geo'
 import { savePlan, usePlan, type EvacuationPlan } from '@/store/plan'
 import { AddressSearch } from '@/components/map/AddressSearch'
 import { HousePanel } from '@/components/map/HousePanel'
@@ -60,22 +61,25 @@ function useIsDesktop() {
   return desktop
 }
 
-/** Высота элемента (ResizeObserver) — для выдвижной панели. */
+/** Высота элемента (ResizeObserver) — для выдвижной панели. Ref-колбэк: элемент есть только на телефоне. */
 function useHeight<T extends HTMLElement>() {
-  const ref = useRef<T>(null)
+  const [el, setEl] = useState<T | null>(null)
   const [h, setH] = useState(0)
   useLayoutEffect(() => {
-    const el = ref.current
     if (!el) return
     const ro = new ResizeObserver(() => setH(el.clientHeight))
     ro.observe(el)
     setH(el.clientHeight)
     return () => ro.disconnect()
-  })
-  return [ref, h] as const
+  }, [el])
+  return [setEl, h] as const
 }
 
 const isAbort = (e: unknown) => (e as { name?: string } | null)?.name === 'AbortError'
+
+// Автомаршрут от местоположения — один раз за визит: если человек закрыл
+// адрес кнопкой «×», не выбираем его снова сами.
+let autoLocatedThisVisit = false
 
 function buildPlan(
   from: SelectedPlace,
@@ -117,6 +121,7 @@ export function MapScreen() {
   const online = useOnline()
   const desktop = useIsDesktop()
   const [params, setParams] = useSearchParams()
+  const geo = useGeo()
 
   const allPoints = useMemo(() => getAssemblyPoints(), [])
   const points = useMemo(() => getMappedPoints(), [])
@@ -325,25 +330,41 @@ export function MapScreen() {
     [select],
   )
 
-  const locate = useCallback(() => {
-    if (!('geolocation' in navigator)) {
-      setLocateError(t('map.locate.error'))
-      return
-    }
+  const geoStatusRef = useRef(geo.status)
+  geoStatusRef.current = geo.status
+
+  const locate = useCallback(async () => {
     setLocating(true)
     setLocateError(null)
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        await pickAt({ lat: pos.coords.latitude, lng: pos.coords.longitude }, 'geolocation')
-        setLocating(false)
-      },
-      (err) => {
-        setLocating(false)
-        setLocateError(err.code === err.PERMISSION_DENIED ? t('map.locate.denied') : t('map.locate.error'))
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
-    )
+    const pos = await requestLocation()
+    setLocating(false)
+    if (!pos) {
+      setLocateError(
+        !('geolocation' in navigator)
+          ? t('map.locate.error')
+          : geoStatusRef.current === 'denied'
+            ? t('map.locate.denied')
+            : t('map.locate.error'),
+      )
+      return
+    }
+    if (!isInAlmaty(pos)) {
+      setLocateError(t('map.locate.outside'))
+      return
+    }
+    await pickAt(pos, 'geolocation')
   }, [pickAt, t])
+
+  // Следим за местоположением, пока открыта карта (синяя точка «Вы здесь»)
+  useEffect(() => watchLocation(), [])
+
+  // Разрешили геолокацию — сразу строим маршрут от «Вы здесь»,
+  // если адрес ещё не выбран и человек в Алматы
+  useEffect(() => {
+    if (autoLocatedThisVisit || place || params.get('house') || !geo.position) return
+    autoLocatedThisVisit = true
+    if (isInAlmaty(geo.position)) void pickAt(geo.position, 'geolocation')
+  }, [geo.position, place, params, pickAt])
 
   // Переход со списка домов: /map?house=<id>
   const houseParam = params.get('house')
@@ -354,6 +375,11 @@ export function MapScreen() {
   }, [houseParam, selectHouse, setParams])
 
   const home = useMemo(() => (place ? { lng: place.lng, lat: place.lat } : null), [place])
+  const me = useMemo(() => {
+    const p = geo.position
+    if (!p || (place && haversine(place, p) < 25)) return null
+    return { lng: p.lng, lat: p.lat }
+  }, [geo.position, place])
   const homeRisk = house ? assessRisk(house).level : null
   const candidateIds = useMemo(() => activePlan?.candidates.map((c) => c.id) ?? [], [activePlan])
   const stepPoints = useMemo(
@@ -380,7 +406,7 @@ export function MapScreen() {
   const bottomInset = desktop ? 0 : NAV_H + sheetVisible
   const padding = desktop
     ? { top: 110, right: panelOpen ? 410 : 90, bottom: 60, left: 90 }
-    : { top: 90, right: 64, bottom: bottomInset + 20, left: 28 }
+    : { top: 124, right: 64, bottom: bottomInset + 24, left: 28 }
 
   const showOffline = (!online || mapFailed) && Boolean(activePlan)
   const popular = demoHouses.slice(0, 6)
@@ -432,6 +458,12 @@ export function MapScreen() {
         <div className="mt-2.5">
           <h1 className="font-display text-lg font-semibold">{t('map.empty.title')}</h1>
           <p className="mt-1 text-[13px] text-muted">{t('map.empty.body')}</p>
+          {geo.status === 'locating' && (
+            <p className="mt-2.5 flex items-center gap-2 text-[13px] font-medium text-accent">
+              <Spinner /> {t('map.geo.locating')}
+            </p>
+          )}
+          {geo.status === 'denied' && <p className="mt-2.5 text-[13px] text-muted">{t('map.geo.denied')}</p>}
           <p className="cap mt-2.5">{t('map.tapHint')}</p>
         </div>
       )}
@@ -522,7 +554,15 @@ export function MapScreen() {
   const summary = !place ? (
     <div className="pb-1">
       <div className="font-display text-base font-semibold">{t('map.empty.title')}</div>
-      <div className="text-[13px] text-muted">{t('map.sheet.hint')}</div>
+      <div className="flex items-center gap-2 text-[13px] text-muted">
+        {geo.status === 'locating' ? (
+          <>
+            <Spinner className="text-accent" /> {t('map.geo.locating')}
+          </>
+        ) : (
+          t('map.sheet.hint')
+        )}
+      </div>
     </div>
   ) : status === 'loading' ? (
     <div className="flex items-center gap-3 pb-1">
@@ -591,6 +631,7 @@ export function MapScreen() {
               houses={mapHouses}
               selectedHouseId={place?.houseId ?? null}
               home={home}
+              me={me}
               homeRisk={homeRisk}
               fastestId={activePlan?.to.id ?? null}
               candidateIds={candidateIds}

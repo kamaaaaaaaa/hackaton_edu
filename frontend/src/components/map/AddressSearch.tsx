@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { reverseGeocode, searchAddress, type AddressSuggestion, type SearchOutcome } from '@/api'
+import { isInAlmaty, requestLocation, useGeo } from '@/store/geo'
 import { useI18n } from '@/i18n'
 import { IconCrosshair, IconSearch } from '@/components/ui/icons'
 import { Spinner } from '@/components/ui/motion'
@@ -18,6 +19,7 @@ export function AddressSearch({
   dropUp?: boolean
 }) {
   const { t } = useI18n()
+  const geo = useGeo()
   const [query, setQuery] = useState(initialValue)
   const [open, setOpen] = useState(false)
   const [status, setStatus] = useState<Status>('idle')
@@ -76,27 +78,25 @@ export function AddressSearch({
     onSelect(s)
   }
 
-  const locate = () => {
-    if (!('geolocation' in navigator)) {
-      setLocateError(t('map.locate.error'))
-      return
-    }
+  const locate = async () => {
     setLocating(true)
     setLocateError(null)
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        try {
-          choose(await reverseGeocode({ lat: pos.coords.latitude, lng: pos.coords.longitude }, 'geolocation'))
-        } finally {
-          setLocating(false)
-        }
-      },
-      (err) => {
-        setLocating(false)
-        setLocateError(err.code === err.PERMISSION_DENIED ? t('map.locate.denied') : t('map.locate.error'))
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
-    )
+    const pos = await requestLocation()
+    if (!pos) {
+      setLocating(false)
+      setLocateError(geo.status === 'denied' ? t('map.locate.denied') : t('map.locate.error'))
+      return
+    }
+    if (!isInAlmaty(pos)) {
+      setLocating(false)
+      setLocateError(t('map.locate.outside'))
+      return
+    }
+    try {
+      choose(await reverseGeocode(pos, 'geolocation'))
+    } finally {
+      setLocating(false)
+    }
   }
 
   const items = result.items

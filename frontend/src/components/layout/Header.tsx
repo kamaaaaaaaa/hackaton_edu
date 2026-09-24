@@ -53,11 +53,11 @@ export function Header() {
             type="button"
             onClick={trigger}
             aria-label={t('alarm.simulate')}
-            className="inline-flex min-h-[40px] min-w-[40px] items-center justify-center gap-2 rounded-full border border-signal/40 bg-signal-soft px-2.5 font-mono text-[11px] font-bold uppercase tracking-[0.06em] text-signal-ink transition-colors hover:bg-signal/15 sm:px-3"
+            className="inline-flex min-h-[40px] min-w-[40px] items-center justify-center gap-2 rounded-full border border-signal/40 bg-signal-soft px-2.5 font-mono text-[11px] font-bold uppercase tracking-[0.06em] text-signal-ink transition-colors hover:bg-signal/15 lg:px-3"
           >
             <span className="h-1.5 w-1.5 rounded-full bg-signal animate-blink" />
-            <IconAlert className="sm:hidden" width={17} height={17} />
-            <span className="hidden sm:inline">{t('alarm.badge')}</span>
+            <IconAlert className="lg:hidden" width={17} height={17} />
+            <span className="hidden lg:inline">{t('alarm.badge')}</span>
           </button>
 
           {user ? (
