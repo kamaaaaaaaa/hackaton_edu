@@ -29,6 +29,9 @@ export const STORAGE_KEYS = {
   myMemberId: 'gkt.family.myMemberId.v1',
   myToken: 'gkt.family.myToken.v1',
   authToken: 'gkt.auth.token.v1',
+  /** Какому пользователю сейчас принадлежат данные семьи в этом браузере —
+   *  чтобы при входе под другим аккаунтом не унаследовать чужую семью. */
+  familyBoundUserId: 'gkt.family.boundUserId.v1',
   plan: 'gkt.plan.v1',
   /** Семья в демо-режиме (сервер недоступен) — только на этом устройстве. */
   familyLocal: 'gkt.family.local.v1',

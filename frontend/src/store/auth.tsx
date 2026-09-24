@@ -16,6 +16,17 @@ function errorMessage(e: unknown, fallback: string): string {
   return e instanceof ApiError && e.message ? e.message : fallback
 }
 
+/** Семья/точка встречи хранятся в localStorage без привязки к аккаунту —
+ *  если этого не делать, при входе под другим аккаунтом на том же
+ *  устройстве человек автоматически окажется в чужой семье. */
+function clearFamilyStorage(): void {
+  writeJSON(STORAGE_KEYS.groupCode, null)
+  writeJSON(STORAGE_KEYS.myMemberId, null)
+  writeJSON(STORAGE_KEYS.myToken, null)
+  writeJSON(STORAGE_KEYS.familyLocal, null)
+  writeJSON(STORAGE_KEYS.meetingPoint, null)
+}
+
 interface AuthValue {
   user: AuthUser | null
   token: string | null
@@ -64,6 +75,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Если в этом браузере уже была семья другого аккаунта — не наследуем её.
+  useEffect(() => {
+    if (!user) return
+    const boundUserId = readJSON<number | null>(STORAGE_KEYS.familyBoundUserId, null)
+    if (boundUserId !== null && boundUserId !== user.id) {
+      clearFamilyStorage()
+    }
+    writeJSON(STORAGE_KEYS.familyBoundUserId, user.id)
+  }, [user])
+
   const register = useCallback(
     async (params: { username: string; email: string; password: string }) => {
       setLoading(true)
@@ -105,6 +126,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const current = token
     setToken(null)
     setUser(null)
+    clearFamilyStorage()
+    writeJSON(STORAGE_KEYS.familyBoundUserId, null)
     if (current) {
       try {
         await apiLogout(current)
